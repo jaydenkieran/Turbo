@@ -5,6 +5,7 @@ import traceback
 import discord
 import datetime
 import random
+import re
 
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
@@ -276,12 +277,26 @@ class Commands:
         asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator))
 
-    async def c_taglist(self):
+    async def c_tags(self):
         """
         Get a list of all tags
+
+        {prefix}tags
         """
         cursor = await self.db.get_db().table('tags').run(self.db.db)
         if not cursor.items:
             return Response(":warning: No tags exist (yet)", delete=10)
         tags = [x['name'] for x in cursor.items]
         return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)))
+
+    async def c_createtag(self, message):
+        """
+        Create a tag
+
+        {prefix}createtag "name" "tag"
+        """
+        content = re.findall('"([^"]*)"', message.content)
+        if len(content) == 2:
+            pass
+        else:
+            raise InvalidUsage()
