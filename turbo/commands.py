@@ -34,6 +34,7 @@ class Commands:
         self.bot = bot
         self.config = bot.config
         self.log = bot.log
+        self.db = bot.db
 
         self.can_change_name = True
 
@@ -274,3 +275,13 @@ class Commands:
         await self.bot.edit_profile(password=self.config.password, username=author.name)
         asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator))
+
+    async def c_taglist(self):
+        """
+        Get a list of all tags
+        """
+        cursor = await self.db.get_db().table('tags').run(self.db.db)
+        if not cursor.items:
+            return Response(":warning: No tags exist (yet)", delete=10)
+        tags = [x['name'] for x in cursor.items]
+        return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)))
