@@ -69,6 +69,29 @@ class Turbo(discord.Client):
                 "Problem sending a message in #{}: {}".format(dest.name, e))
         return msg
 
+    async def edit_message(self, message, content, *, delete=0):
+        """
+        Overrides discord.py's function for editing a message
+        """
+        msg = None
+        try:
+            msg = await super().edit_message(message, content)
+            self.log.debug(
+                'Edited message ID {} in #{}'.format(msg.id, msg.channel))
+
+            if msg and delete and self.config.delete:
+                asyncio.ensure_future(self._delete_after(msg, delete))
+        except discord.Forbidden:
+            self.log.warning(
+                "No permission to edit a message in #{}".format(message.channel))
+        except discord.NotFound:
+            self.log.warning(
+                "Could not find message ID {} to edit".format(message.id))
+        except discord.HTTPException as e:
+            self.log.warning(
+                "Problem editing a message in #{}: {}".format(message.channel, e))
+        return msg
+
     async def delete_message(self, msg):
         """
         Overrides discord.py's function for deleting a message
@@ -159,12 +182,18 @@ class Turbo(discord.Client):
                 content = r.content
                 if r.reply and not self.config.selfbot:
                     content = "{}: {}".format(message.author.mention, content)
-                await self.send_message(message.channel, content, delete=r.delete)
+                if self.config.selfbot:
+                    return await self.edit_message(message, content, delete=r.delete)
+                else:
+                    return await self.send_message(message.channel, content, delete=r.delete)
         except InvalidUsage:
             docs = getattr(h, '__doc__', None)
             docs = '\n'.join(l.strip() for l in docs.split('\n'))
-            return await self.send_message(message.channel, ":warning: Incorrect usage.\n```\n{}\n```".format(
-                docs.format(prefix=self.config.prefix)))
+            docs = ":warning: Incorrect usage.\n```\n{}\n```".format(
+                docs.format(prefix=self.config.prefix))
+            if self.config.selfbot:
+                return await self.edit_message(message, docs)
+            return await self.send_message(message.channel, docs)
 
 if __name__ == "__main__":
     bot = Turbo()
