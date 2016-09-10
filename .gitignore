@@ -62,4 +62,8 @@ config/turbo.ini
 turbo.log
 __pycache__/
 *.pyc
+<<<<<<< HEAD
 >>>>>>> 4d1055f... Initial rewrite of Turbo
+=======
+rethinkdb_data/
+>>>>>>> 1ce7b23... Implement basic RethinkDB logic

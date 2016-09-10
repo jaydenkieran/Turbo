@@ -7,6 +7,7 @@ from .utils import Logging, Config
 from .commands import Commands, Response
 from .exceptions import InvalidUsage
 from .constants import VERSION
+from .database import Database
 
 
 class Turbo(discord.Client):
@@ -19,6 +20,7 @@ class Turbo(discord.Client):
         super().__init__()
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.log.debug('Created aiohttp client session')
+        self.db = Database(self)
         self.commands = Commands(self)
 
         self.log.info("Turbo ({}). Connecting...".format(VERSION))
@@ -116,6 +118,9 @@ class Turbo(discord.Client):
         await self.delete_message(msg)
 
     async def on_ready(self):
+        """
+        Called when the bot is connected to Discord
+        """
         self.log.info('Logged in as {0} ({0.id})'.format(self.user))
         print(flush=True)
         self.log.info('Configuration:')
@@ -123,9 +128,24 @@ class Turbo(discord.Client):
         self.log.info('- Allow PMs: ' + self.format_bool(self.config.pm))
         self.log.info('- Prefix: ' + self.config.prefix)
         print(flush=True)
+        self.log.warning("The bot cannot be used until database actions are complete...")
+        self.log.info('RethinkDB:')
+
+        await self.db.connect()  # Connect to database
+
+        # Create needed tables
+        await self.db.create_table('tags', primary='name')
+
+        # Database ready
+        self.db.connected = True
+        print(flush=True)
+        self.log.info("Database actions complete. Bot is ready for use.")
+        print(flush=True)
 
     async def on_message(self, message):
         await self.wait_until_ready()
+        if not self.db.connected:
+            return
         content = message.content.strip()
         if not self.config.pm and message.channel.is_private:
             return
