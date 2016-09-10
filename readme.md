@@ -41,3 +41,4 @@ You can change the default **command prefix** in `config/turbo.ini`
 - `~snowflake [id/@user/#channel/emote/@role]` - Gets the creation time of a Discord snowflake ID
 - `~status [status]` - Changes/clears status
 - `~discrim [discrim]` - Gets matching visible users with discriminator
+- `~changediscrim` - Changes user's discriminator
