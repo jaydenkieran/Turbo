@@ -333,3 +333,10 @@ class Commands:
             return Response(":warning: No tag named `{}`".format(content), delete=10)
         else:
             return Response(get['content'])
+
+    async def c_cleartags(self):
+        """
+        Clears all tags
+        """
+        await self.db.delete('tags')
+        return Response(":thumbsup:", delete=10)
