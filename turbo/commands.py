@@ -6,6 +6,7 @@ import discord
 import datetime
 import random
 import re
+import rethinkdb as r
 
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
@@ -297,6 +298,11 @@ class Commands:
         """
         content = re.findall('"([^"]*)"', message.content)
         if len(content) == 2:
-            pass
+            name, content = content
+            data = {"name": name, "content": content}
+            insert = await self.db.insert('tags', data)
+            self.log.debug("Create tag response: {}".format(insert))
+            return Response(":thumbsup: Added tag `{}`".format(name))
         else:
-            raise InvalidUsage()
+            return Response(":warning: You need to use two sets of quotes on this command. You provided **{}**".format(
+                len(content)))

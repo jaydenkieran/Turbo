@@ -23,6 +23,18 @@ class Database():
         self.log.debug("Saving document to table {} with data: {}".format(table, data))
         return await r.table(table).insert(data, conflict="update").run(self.db)
 
+    async def delete(self, table, primary_key=None):
+        """
+        Deletes a document(s) from a table
+        """
+        self.log.debug("Deleting document from table {} with primary key {}".format(table, primary_key))
+        if primary_key:
+            # Delete one document with the key name
+            return await r.table(table).get(primary_key).delete().run(self.db)
+        else:
+            # Delete all documents in the table
+            return await r.table(table).delete().run(self.db)
+
     async def connect(self):
         """
         Establish a database connection
