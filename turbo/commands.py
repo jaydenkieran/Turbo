@@ -56,6 +56,10 @@ class Commands:
         return wrapper
 
     async def _discrim_timer(self):
+        """
+        Utility function working in conjunction with changediscrim command
+        Do not use this with any other method
+        """
         self.log.debug("Discriminator timer started")
         self.can_change_name = False
         await asyncio.sleep(60 * 61)  # 1 hour, 1 min (compensating)
@@ -300,7 +304,7 @@ class Commands:
         if len(content) == 2:
             name, content = content
             data = {"name": name, "content": content}
-            insert = await self.db.insert('tags', data)
+            await self.db.insert('tags', data)
             return Response(":thumbsup:", delete=10)
         else:
             raise InvalidUsage()
@@ -337,6 +341,8 @@ class Commands:
     async def c_cleartags(self):
         """
         Clears all tags
+
+        {prefix}cleartags
         """
         await self.db.delete('tags')
         return Response(":thumbsup:", delete=10)
