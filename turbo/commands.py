@@ -294,7 +294,7 @@ class Commands:
         """
         Create a tag
 
-        {prefix}createtag "name" "tag"
+        {prefix}createtag <"name"> <"tag">
         """
         content = re.findall('"([^"]*)"', message.content)
         if len(content) == 2:
@@ -309,7 +309,7 @@ class Commands:
         """
         Delete a tag
 
-        {prefix}deletetag "name"
+        {prefix}deletetag <"name">
         """
         content = re.findall('"([^"]*)"', message.content)
         if len(content) == 1:
@@ -320,3 +320,16 @@ class Commands:
             return Response(":thumbsup:", delete=10)
         else:
             raise InvalidUsage()
+
+    async def c_tag(self, message, tag):
+        """
+        Returns a tag
+
+        {prefix}tag <name>
+        """
+        content = message.content.replace('{}tag '.format(self.config.prefix), '')
+        get = await self.db.get_db().table('tags').get(content).run(self.db.db)
+        if get is None:
+            return Response(":warning: No tag named `{}`".format(content), delete=10)
+        else:
+            return Response(get['content'])
