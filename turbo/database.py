@@ -28,7 +28,7 @@ class Database():
         Deletes a document(s) from a table
         """
         self.log.debug("Deleting document from table {} with primary key {}".format(table, primary_key))
-        if primary_key:
+        if primary_key is not None:
             # Delete one document with the key name
             return await r.table(table).get(primary_key).delete().run(self.db)
         else:

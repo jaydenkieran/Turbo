@@ -271,12 +271,12 @@ class Commands:
             await self.bot.edit_profile(password=self.config.password, username=name)
         except discord.HTTPException as e:
             self.log.error(e)
-            return Response(":warning: There was a problem. The password in the config may be invalid.")
+            return Response(":warning: There was a problem. The password in the config may be invalid.", delete=10)
         await asyncio.sleep(3)  # Allow time for websocket event
         self.log.debug("Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
         await self.bot.edit_profile(password=self.config.password, username=author.name)
         asyncio.ensure_future(self._discrim_timer())
-        return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator))
+        return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
 
     async def c_tags(self):
         """
@@ -288,7 +288,7 @@ class Commands:
         if not cursor.items:
             return Response(":warning: No tags exist (yet)", delete=10)
         tags = [x['name'] for x in cursor.items]
-        return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)))
+        return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)), delete=60)
 
     async def c_createtag(self, message):
         """
@@ -301,8 +301,22 @@ class Commands:
             name, content = content
             data = {"name": name, "content": content}
             insert = await self.db.insert('tags', data)
-            self.log.debug("Create tag response: {}".format(insert))
-            return Response(":thumbsup: Added tag `{}`".format(name))
+            return Response(":thumbsup:", delete=10)
         else:
-            return Response(":warning: You need to use two sets of quotes on this command. You provided **{}**".format(
-                len(content)))
+            raise InvalidUsage()
+
+    async def c_deletetag(self, message):
+        """
+        Delete a tag
+
+        {prefix}deletetag "name"
+        """
+        content = re.findall('"([^"]*)"', message.content)
+        if len(content) == 1:
+            name = content[0]
+            delete = await self.db.delete('tags', name)
+            if int(delete['skipped']) != 0:
+                return Response(":warning: Could not delete `{}`, does not exist".format(name), delete=10)
+            return Response(":thumbsup:", delete=10)
+        else:
+            raise InvalidUsage()
