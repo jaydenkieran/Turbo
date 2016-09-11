@@ -8,6 +8,7 @@ from .commands import Commands, Response
 from .exceptions import InvalidUsage
 from .constants import VERSION
 from .database import Database
+from .req import HTTPClient
 
 
 class Turbo(discord.Client):
@@ -21,6 +22,7 @@ class Turbo(discord.Client):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.log.debug('Created aiohttp client session')
         self.db = Database(self)
+        self.req = HTTPClient(self, self.session)
         self.commands = Commands(self)
 
         self.log.info("Turbo ({}). Connecting...".format(VERSION))

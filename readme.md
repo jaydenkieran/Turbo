@@ -47,3 +47,4 @@ You can change the default **command prefix** in `config/turbo.ini`
 - `~deletetag <"name">` - Delete a tag
 - `~cleartags` - Deletes all tags
 - `~tag <name>` - Use a tag
+- `~cat` - Sends a random cat image

@@ -37,6 +37,7 @@ class Commands:
         self.config = bot.config
         self.log = bot.log
         self.db = bot.db
+        self.req = bot.req
 
         self.can_change_name = True
 
@@ -346,3 +347,12 @@ class Commands:
         """
         await self.db.delete('tags')
         return Response(":thumbsup:", delete=10)
+
+    async def c_cat(self):
+        """
+        Sends a random cat picture
+
+        {prefix}cat
+        """
+        cat = await self.req.get('http://random.cat/meow')
+        return Response(cat['file'])
