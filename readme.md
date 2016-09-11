@@ -42,3 +42,8 @@ You can change the default **command prefix** in `config/turbo.ini`
 - `~status [status]` - Changes/clears status
 - `~discrim [discrim]` - Gets matching visible users with discriminator
 - `~changediscrim` - Changes user's discriminator
+- `~tags` - List all tags
+- `~addtag <"name"> <"content">` - Add a tag
+- `~deletetag <"name">` - Delete a tag
+- `~cleartags` - Deletes all tags
+- `~tag <name>` - Use a tag
