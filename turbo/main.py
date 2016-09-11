@@ -131,7 +131,7 @@ class Turbo(discord.Client):
         self.log.warning("The bot cannot be used until database actions are complete...")
         self.log.info('RethinkDB:')
 
-        await self.db.connect()  # Connect to database
+        await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)  # Connect to database
 
         # Create needed tables
         await self.db.create_table('tags', primary='name')

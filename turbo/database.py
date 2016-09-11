@@ -35,13 +35,13 @@ class Database():
             # Delete all documents in the table
             return await r.table(table).delete().run(self.db)
 
-    async def connect(self):
+    async def connect(self, host, port, user, password):
         """
         Establish a database connection
         """
         self.log.info("- Connecting to database...")
         try:
-            self.db = await r.connect(db=self.db_name)
+            self.db = await r.connect(db=self.db_name, host=host, port=port, user=user, password=password)
         except r.errors.ReqlDriverError as e:
             self.log.critical("Failed to connect")
             self.log.error(e)

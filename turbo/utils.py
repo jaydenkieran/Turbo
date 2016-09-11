@@ -79,6 +79,12 @@ class Config:
         self.prefix = config.get('General', 'Prefix', fallback='!')
         self.delete = config.get('General', 'Delete', fallback=True)
 
+        # [Database]
+        self.rhost = config.get('Database', 'Host', fallback='localhost')
+        self.rport = config.getint('Database', 'Port', fallback=28015)
+        self.ruser = config.get('Database', 'User', fallback='admin')
+        self.rpass = config.get('Database', 'Password', fallback='')
+
         self.log.debug("Loaded '{}'".format(filename))
         self.validate()
 
