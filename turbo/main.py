@@ -212,8 +212,8 @@ class Turbo(discord.Client):
             docs = ":warning: Incorrect usage.\n```\n{}\n```".format(
                 docs.format(prefix=self.config.prefix))
             if self.config.selfbot:
-                return await self.edit_message(message, docs)
-            return await self.send_message(message.channel, docs)
+                return await self.edit_message(message, docs, delete=10)
+            return await self.send_message(message.channel, docs, delete=10)
 
 if __name__ == "__main__":
     bot = Turbo()
