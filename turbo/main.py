@@ -138,23 +138,27 @@ class Turbo(discord.Client):
         self.log.info('- Allow PMs: ' + self.format_bool(self.config.pm))
         self.log.info('- Prefix: ' + self.config.prefix)
         print(flush=True)
-        self.log.warning("The bot cannot be used until database actions are complete...")
         self.log.info('RethinkDB:')
 
-        await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)  # Connect to database
+        connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)  # Connect to database
+        if connect:
+            # Create needed tables
+            await self.db.create_table('tags', primary='name')
 
-        # Create needed tables
-        await self.db.create_table('tags', primary='name')
-
-        # Database ready
-        self.db.connected = True
+            # Database ready
+            self.db.ready = True
+            print(flush=True)
+        else:
+            self.db.ready = True
+            self.log.warning("A database connection could not be established.")
+            self.log.warning("Commands that require a database connection will be unavailable.")
         print(flush=True)
-        self.log.info("Database actions complete. Bot is ready for use.")
+        self.log.info('Bot is ready.')
         print(flush=True)
 
     async def on_message(self, message):
         await self.wait_until_ready()
-        if not self.db.connected:
+        if not self.db.ready:
             return
         content = message.content.strip()
         if not self.config.pm and message.channel.is_private:

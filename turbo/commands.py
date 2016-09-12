@@ -56,6 +56,21 @@ class Commands:
 
         return wrapper
 
+    def requires_db(func):
+        """
+        Requires a database connection
+        """
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            message = _get_variable('message')
+
+            if not message or self.db.db is not None:
+                return await func(self, *args, **kwargs)
+            else:
+                return Response(":warning: This command cannot be used - the database is unavailable", delete=10)
+
+        return wrapper
+
     async def _discrim_timer(self):
         """
         Utility function working in conjunction with changediscrim command
@@ -283,6 +298,7 @@ class Commands:
         asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
 
+    @requires_db
     async def c_tags(self):
         """
         Get a list of all tags
@@ -295,6 +311,7 @@ class Commands:
         tags = [x['name'] for x in cursor.items]
         return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)), delete=60)
 
+    @requires_db
     async def c_createtag(self, message):
         """
         Create a tag
@@ -310,6 +327,7 @@ class Commands:
         else:
             raise InvalidUsage()
 
+    @requires_db
     async def c_deletetag(self, message):
         """
         Delete a tag
@@ -326,6 +344,7 @@ class Commands:
         else:
             raise InvalidUsage()
 
+    @requires_db
     async def c_tag(self, message, tag):
         """
         Returns a tag
@@ -339,6 +358,7 @@ class Commands:
         else:
             return Response(get['content'])
 
+    @requires_db
     async def c_cleartags(self):
         """
         Clears all tags

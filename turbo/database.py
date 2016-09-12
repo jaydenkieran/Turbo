@@ -7,8 +7,9 @@ class Database():
         self.bot = bot
         self.log = bot.log
         self.db_name = 'turbo'
+        self.db = None
         r.set_loop_type("asyncio")
-        self.connected = False
+        self.ready = False
 
     def get_db(self):
         """
@@ -45,7 +46,8 @@ class Database():
         except r.errors.ReqlDriverError as e:
             self.log.critical("Failed to connect")
             self.log.error(e)
-            os._exit(1)
+            return False
+
         info = await self.db.server()
         self.log.info("- Established connection. Server: {}".format(info['name']))
 
@@ -55,6 +57,7 @@ class Database():
             self.log.info("- Created database: {}".format(self.db_name))
         except r.errors.ReqlOpFailedError:
             self.log.debug("Database {} already exists, skipping creation".format(self.db_name))
+        return True
 
     async def create_table(self, name, primary='id'):
         """
