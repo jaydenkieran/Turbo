@@ -35,6 +35,7 @@ Run `python run.py`.
 You can change the default **command prefix** in `config/turbo.ini`
 
 - `~ping` - Test the bot's latency
+- `~stats` - Prints statistics
 - `~shutdown <normal/n/hard/h>` - Shuts the bot down
 - `~help [command]` - Provides a list of commands, or docs for a command
 - `~eval <code>` - Evaluates Python code
