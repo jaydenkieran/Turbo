@@ -2,6 +2,7 @@ import discord
 import aiohttp
 import inspect
 import asyncio
+import time
 
 from .utils import Logging, Config
 from .commands import Commands, Response
@@ -49,6 +50,12 @@ class Turbo(discord.Client):
         Returns a string based on bool value
         """
         return ['no', 'yes'][boolean]
+
+    def get_uptime(self):
+        """
+        Returns the uptime of the bot
+        """
+        return time.time() - self.started
 
     async def send_message(self, dest, content, *, tts=False, delete=0):
         """
@@ -123,6 +130,7 @@ class Turbo(discord.Client):
         """
         Called when the bot is connected to Discord
         """
+        self.started = time.time()
         self.log.info('Logged in as {0} ({0.id})'.format(self.user))
         print(flush=True)
         self.log.info('Configuration:')

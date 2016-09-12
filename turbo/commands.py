@@ -73,7 +73,7 @@ class Commands:
 
         {prefix}ping
         """
-        return Response(":ping_pong:", delete=10)
+        return Response(":ping_pong:", delete=5)
 
     async def c_shutdown(self, channel, option):
         """
@@ -347,6 +347,34 @@ class Commands:
         """
         await self.db.delete('tags')
         return Response(":thumbsup:", delete=10)
+
+    async def c_stats(self):
+        """
+        Prints statistics
+        """
+        response = "```md"
+
+        # Bot
+        m, s = divmod(int(self.bot.get_uptime()), 60)
+        h, m = divmod(m, 60)
+        response += "\n[Uptime]: %d:%02d:%02d" % (h, m, s)
+
+        # User
+        response += "\n\n[Users]: {} ({} unique)".format(len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
+        response += "\n[Avatars]: {} ({} unique)".format(
+            len([x for x in self.bot.get_all_members() if x.avatar]), len(set([x for x in self.bot.get_all_members() if x.avatar])))
+        response += "\n[Bots]: {} ({} unique)".format(
+            len([x for x in self.bot.get_all_members() if x.bot]), len(set([x for x in self.bot.get_all_members() if x.bot])))
+
+        # Server
+        response += "\n\n[Servers]: {}".format(len(self.bot.servers))
+        response += "\n[Requires 2FA]: {}".format(len([x for x in self.bot.servers if x.mfa_level == 1]))
+        response += "\n[Has Emojis]: {}".format(len([x for x in self.bot.servers if x.emojis]))
+
+        # Other
+        response += "\n\n[PMs]: {}".format(len(self.bot.private_channels))
+        response += "\n```"
+        return Response(response)
 
     async def c_cat(self):
         """
