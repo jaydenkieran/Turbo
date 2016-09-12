@@ -80,7 +80,8 @@ class Commands:
         self.can_change_name = False
         await asyncio.sleep(60 * 61)  # 1 hour, 1 min (compensating)
         self.can_change_name = True
-        self.log.info("{}changediscrim can now be used again".format(self.config.prefix))
+        self.log.info(
+            "{}changediscrim can now be used again".format(self.config.prefix))
 
     async def c_ping(self):
         """
@@ -218,7 +219,8 @@ class Commands:
             preface = " Server: **{}**\n".format(server)
         message = discord.utils.get(self.bot.messages, id=id)
         if message:
-            preface = " Message: Sent in **{0.server} | #{0.name}**\n".format(message.channel)
+            preface = " Message: Sent in **{0.server} | #{0.name}**\n".format(
+                message.channel)
 
         snowflake = discord.utils.snowflake_time(sfid)
         time = snowflake.strftime("**%a %d %b %y** (**%X** UTC)")
@@ -259,7 +261,8 @@ class Commands:
                 discrim = int(discrim)
             except ValueError:
                 return Response(":warning: `{}` is not a valid discriminator".format(discrim), delete=10)
-        has_discrim = set([x.name for x in self.bot.get_all_members() if x.discriminator == discrim])
+        has_discrim = set(
+            [x.name for x in self.bot.get_all_members() if x.discriminator == discrim])
         if not has_discrim:
             return Response(":warning: No names with the discriminator `{}`".format(discrim), delete=10)
         return Response(":crayon: Names using `{}`\n`{}`".format(discrim, '`, `'.join(has_discrim)))
@@ -282,18 +285,21 @@ class Commands:
             return Response(":warning: This command only works when Password is set in the config", delete=10)
         if not self.can_change_name:
             return Response(":warning: This command cannot be used yet. It has not been 1 hour since last usage", delete=10)
-        has_discrim = list(set([x.name for x in self.bot.get_all_members() if x.discriminator == author.discriminator and x.name != author.name]))
+        has_discrim = list(set([x.name for x in self.bot.get_all_members(
+        ) if x.discriminator == author.discriminator and x.name != author.name]))
         if not has_discrim:
             return Response(":warning: No names with the discriminator `{}`".format(author.discriminator), delete=10)
         name = random.choice(has_discrim)
-        self.log.debug("Changing name from {} to {}".format(self.bot.user.name, name))
+        self.log.debug(
+            "Changing name from {} to {}".format(self.bot.user.name, name))
         try:
             await self.bot.edit_profile(password=self.config.password, username=name)
         except discord.HTTPException as e:
             self.log.error(e)
             return Response(":warning: There was a problem. The password in the config may be invalid.", delete=10)
         await asyncio.sleep(3)  # Allow time for websocket event
-        self.log.debug("Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
+        self.log.debug(
+            "Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
         await self.bot.edit_profile(password=self.config.password, username=author.name)
         asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
@@ -351,7 +357,8 @@ class Commands:
 
         {prefix}tag <name>
         """
-        content = message.content.replace('{}tag '.format(self.config.prefix), '')
+        content = message.content.replace(
+            '{}tag '.format(self.config.prefix), '')
         get = await self.db.get_db().table('tags').get(content).run(self.db.db)
         if get is None:
             return Response(":warning: No tag named `{}`".format(content), delete=10)
@@ -380,7 +387,8 @@ class Commands:
         response += "\n[Uptime]: %d:%02d:%02d" % (h, m, s)
 
         # User
-        response += "\n\n[Users]: {} ({} unique)".format(len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
+        response += "\n\n[Users]: {} ({} unique)".format(
+            len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
         response += "\n[Avatars]: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.avatar]), len(set([x for x in self.bot.get_all_members() if x.avatar])))
         response += "\n[Bots]: {} ({} unique)".format(
@@ -388,8 +396,10 @@ class Commands:
 
         # Server
         response += "\n\n[Servers]: {}".format(len(self.bot.servers))
-        response += "\n[Requires 2FA]: {}".format(len([x for x in self.bot.servers if x.mfa_level == 1]))
-        response += "\n[Has Emojis]: {}".format(len([x for x in self.bot.servers if x.emojis]))
+        response += "\n[Requires 2FA]: {}".format(
+            len([x for x in self.bot.servers if x.mfa_level == 1]))
+        response += "\n[Has Emojis]: {}".format(
+            len([x for x in self.bot.servers if x.emojis]))
 
         # Other
         response += "\n\n[PMs]: {}".format(len(self.bot.private_channels))

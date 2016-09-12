@@ -122,7 +122,8 @@ class Turbo(discord.Client):
         """
         Deletes a message after a given amount of time
         """
-        self.log.debug("Scheduled message ID {} to delete ({}s)".format(msg.id, time))
+        self.log.debug(
+            "Scheduled message ID {} to delete ({}s)".format(msg.id, time))
         await asyncio.sleep(time)
         await self.delete_message(msg)
 
@@ -140,7 +141,8 @@ class Turbo(discord.Client):
         print(flush=True)
         self.log.info('RethinkDB:')
 
-        connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)  # Connect to database
+        # Connect to database
+        connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
         if connect:
             # Create needed tables
             await self.db.create_table('tags', primary='name')
@@ -151,7 +153,8 @@ class Turbo(discord.Client):
         else:
             self.db.ready = True
             self.log.warning("A database connection could not be established.")
-            self.log.warning("Commands that require a database connection will be unavailable.")
+            self.log.warning(
+                "Commands that require a database connection will be unavailable.")
         print(flush=True)
         self.log.info('Bot is ready.')
         print(flush=True)

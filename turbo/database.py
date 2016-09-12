@@ -3,6 +3,7 @@ import os
 
 
 class Database():
+
     def __init__(self, bot):
         self.bot = bot
         self.log = bot.log
@@ -21,14 +22,16 @@ class Database():
         """
         Insert a document into a table
         """
-        self.log.debug("Saving document to table {} with data: {}".format(table, data))
+        self.log.debug(
+            "Saving document to table {} with data: {}".format(table, data))
         return await r.table(table).insert(data, conflict="update").run(self.db)
 
     async def delete(self, table, primary_key=None):
         """
         Deletes a document(s) from a table
         """
-        self.log.debug("Deleting document from table {} with primary key {}".format(table, primary_key))
+        self.log.debug(
+            "Deleting document from table {} with primary key {}".format(table, primary_key))
         if primary_key is not None:
             # Delete one document with the key name
             return await r.table(table).get(primary_key).delete().run(self.db)
@@ -49,14 +52,16 @@ class Database():
             return False
 
         info = await self.db.server()
-        self.log.info("- Established connection. Server: {}".format(info['name']))
+        self.log.info(
+            "- Established connection. Server: {}".format(info['name']))
 
         # Create the database if it does not exist
         try:
             await r.db_create(self.db_name).run(self.db)
             self.log.info("- Created database: {}".format(self.db_name))
         except r.errors.ReqlOpFailedError:
-            self.log.debug("Database {} already exists, skipping creation".format(self.db_name))
+            self.log.debug(
+                "Database {} already exists, skipping creation".format(self.db_name))
         return True
 
     async def create_table(self, name, primary='id'):
@@ -67,4 +72,5 @@ class Database():
             await r.table_create(name, primary_key=primary).run(self.db)
             self.log.info("- Created table: {}".format(name))
         except r.errors.ReqlOpFailedError:
-            self.log.debug("Table {} already exists, skipping creation".format(name))
+            self.log.debug(
+                "Table {} already exists, skipping creation".format(name))
