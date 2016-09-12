@@ -58,6 +58,6 @@ Command | Usage | SB<sup>1</sup> | DB<sup>2</sup>
 `tag <name>` | Triggers a tag || Yes
 `cat` | Sends a random cat image ||
 
-- *<sup>1</sup>SB = Selfbot. The selfbot option must be enabled in the configuration file*
-- *<sup>2</sup>DB = Database. A RethinkDB database connection must be available to use*
+- *<sup>1</sup>SB = Selfbot ONLY. The selfbot option must be enabled in the configuration file*
+- *<sup>2</sup>DB = Database REQUIRED. A RethinkDB database connection must be available to use*
 - *<sup>3</sup>To learn more about snowflakes, read https://discordapp.com/developers/docs/reference#snowflake-id's*
