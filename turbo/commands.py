@@ -3,10 +3,8 @@ import asyncio
 import inspect
 import traceback
 import discord
-import datetime
 import random
 import re
-import rethinkdb as r
 
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
@@ -160,7 +158,7 @@ class Commands:
             exc = traceback.format_exc().splitlines()
             result = exc[-1]
         self.log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
-        return Response("```py\n# Input\n{}\n# Output\n{}\n```".format(stmt, result))
+        return Response("```xl\n--- In ---\n{}\n--- Out ---\n{}\n```".format(stmt, result))
 
     async def c_snowflake(self, author, id=None):
         """
@@ -379,30 +377,30 @@ class Commands:
         """
         Prints statistics
         """
-        response = "```md"
+        response = "```xl"
 
         # Bot
         m, s = divmod(int(self.bot.get_uptime()), 60)
         h, m = divmod(m, 60)
-        response += "\n[Uptime]: %d:%02d:%02d" % (h, m, s)
+        response += "\nUptime: %d:%02d:%02d" % (h, m, s)
 
         # User
-        response += "\n\n[Users]: {} ({} unique)".format(
+        response += "\n\nUsers: {} ({} unique)".format(
             len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
-        response += "\n[Avatars]: {} ({} unique)".format(
+        response += "\nAvatars: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.avatar]), len(set([x for x in self.bot.get_all_members() if x.avatar])))
-        response += "\n[Bots]: {} ({} unique)".format(
+        response += "\nBots: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.bot]), len(set([x for x in self.bot.get_all_members() if x.bot])))
 
         # Server
-        response += "\n\n[Servers]: {}".format(len(self.bot.servers))
-        response += "\n[Requires 2FA]: {}".format(
+        response += "\n\nServers: {}".format(len(self.bot.servers))
+        response += "\nRequires 2FA: {}".format(
             len([x for x in self.bot.servers if x.mfa_level == 1]))
-        response += "\n[Has Emojis]: {}".format(
+        response += "\nHas Emojis: {}".format(
             len([x for x in self.bot.servers if x.emojis]))
 
         # Other
-        response += "\n\n[PMs]: {}".format(len(self.bot.private_channels))
+        response += "\n\nPMs: {}".format(len(self.bot.private_channels))
         response += "\n```"
         return Response(response)
 

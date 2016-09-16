@@ -146,15 +146,11 @@ class Turbo(discord.Client):
         if connect:
             # Create needed tables
             await self.db.create_table('tags', primary='name')
-
-            # Database ready
-            self.db.ready = True
-            print(flush=True)
         else:
-            self.db.ready = True
             self.log.warning("A database connection could not be established.")
             self.log.warning(
                 "Commands that require a database connection will be unavailable.")
+        self.db.ready = True
         print(flush=True)
         self.log.info('Bot is ready.')
         print(flush=True)
