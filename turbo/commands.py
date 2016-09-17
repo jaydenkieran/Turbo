@@ -78,7 +78,12 @@ class Commands:
         async def wrapper(self, *args, **kwargs):
             message = _get_variable('message')
 
-            if not message or message.author.id == (await self.bot.application_info()).owner.id:
+            if self.bot.user.bot:
+                owner = (await self.bot.application_info()).owner.id
+            else:
+                owner = self.bot.user.id
+
+            if not message or message.author.id == owner:
                 return await func(self, *args, **kwargs)
             else:
                 return Response(":warning: This command cannot be used - only the bot application creator can use this command to prevent harm", delete=10)
