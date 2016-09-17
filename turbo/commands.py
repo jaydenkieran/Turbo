@@ -70,6 +70,21 @@ class Commands:
 
         return wrapper
 
+    def creator_only(func):
+        """
+        Requires the bot's application creator to be the one using the command
+        """
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            message = _get_variable('message')
+
+            if not message or message.author.id == (await self.bot.application_info()).owner.id:
+                return await func(self, *args, **kwargs)
+            else:
+                return Response(":warning: This command cannot be used - only the bot application creator can use this command to prevent harm", delete=10)
+
+        return wrapper
+
     async def _discrim_timer(self):
         """
         Utility function working in conjunction with changediscrim command
@@ -142,6 +157,7 @@ class Commands:
                     commands.append("{}{}".format(self.config.prefix, cname))
             return Response("Commands:\n`{}`".format("`, `".join(commands)), delete=60)
 
+    @creator_only
     async def c_eval(self, message, server, channel, author, stmt, args):
         """
         Evaluates Python code
@@ -405,6 +421,7 @@ class Commands:
         response += "\n```"
         return Response(response)
 
+    @creator_only
     async def c_subprocess(self, args):
         """
         Uses subprocess to run a console command
