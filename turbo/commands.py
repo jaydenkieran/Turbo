@@ -5,6 +5,7 @@ import traceback
 import discord
 import random
 import re
+import subprocess
 
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
@@ -403,6 +404,23 @@ class Commands:
         response += "\n\nPMs: {}".format(len(self.bot.private_channels))
         response += "\n```"
         return Response(response)
+
+    async def c_subprocess(self, args):
+        """
+        Uses subprocess to run a console command
+        This should not be used if you do not know what you're doing
+        This makes it easier to update the bot and perform actions
+        Without having to SSH into the bot itself
+
+        {prefix}subprocess
+        """
+        if not args:
+            raise InvalidUsage()
+        try:
+            output = subprocess.check_output(args, universal_newlines=True)
+        except Exception as e:
+            output = e
+        return Response("```xl\n--- Subprocess ---\n{}\n```".format(output))
 
     async def c_cat(self):
         """
