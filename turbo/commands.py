@@ -468,7 +468,7 @@ class Commands:
         args = ' '.join(args)
         search = urllib.parse.quote(args)
         html = await self.req.get('https://www.youtube.com/results?search_query=' + search, json=False)
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, "html.parser")
         response = "YouTube results for **{}**".format(args)
         amount = 5
         for l in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
