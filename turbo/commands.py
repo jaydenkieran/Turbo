@@ -3,10 +3,9 @@ import asyncio
 import inspect
 import traceback
 import discord
-import datetime
 import random
 import re
-import rethinkdb as r
+import subprocess
 
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
@@ -68,6 +67,26 @@ class Commands:
                 return await func(self, *args, **kwargs)
             else:
                 return Response(":warning: This command cannot be used - the database is unavailable", delete=10)
+
+        return wrapper
+
+    def creator_only(func):
+        """
+        Requires the bot's application creator to be the one using the command
+        """
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            message = _get_variable('message')
+
+            if self.bot.user.bot:
+                owner = (await self.bot.application_info()).owner.id
+            else:
+                owner = self.bot.user.id
+
+            if not message or message.author.id == owner:
+                return await func(self, *args, **kwargs)
+            else:
+                return Response(":warning: This command cannot be used - only the bot application creator can use this command to prevent harm", delete=10)
 
         return wrapper
 
@@ -143,6 +162,7 @@ class Commands:
                     commands.append("{}{}".format(self.config.prefix, cname))
             return Response("Commands:\n`{}`".format("`, `".join(commands)), delete=60)
 
+    @creator_only
     async def c_eval(self, message, server, channel, author, stmt, args):
         """
         Evaluates Python code
@@ -160,7 +180,7 @@ class Commands:
             exc = traceback.format_exc().splitlines()
             result = exc[-1]
         self.log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
-        return Response("```py\n# Input\n{}\n# Output\n{}\n```".format(stmt, result))
+        return Response("```xl\n--- In ---\n{}\n--- Out ---\n{}\n```".format(stmt, result))
 
     async def c_snowflake(self, author, id=None):
         """
@@ -379,32 +399,50 @@ class Commands:
         """
         Prints statistics
         """
-        response = "```md"
+        response = "```xl"
 
         # Bot
         m, s = divmod(int(self.bot.get_uptime()), 60)
         h, m = divmod(m, 60)
-        response += "\n[Uptime]: %d:%02d:%02d" % (h, m, s)
+        response += "\nUptime: %d:%02d:%02d" % (h, m, s)
 
         # User
-        response += "\n\n[Users]: {} ({} unique)".format(
+        response += "\n\nUsers: {} ({} unique)".format(
             len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
-        response += "\n[Avatars]: {} ({} unique)".format(
+        response += "\nAvatars: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.avatar]), len(set([x for x in self.bot.get_all_members() if x.avatar])))
-        response += "\n[Bots]: {} ({} unique)".format(
+        response += "\nBots: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.bot]), len(set([x for x in self.bot.get_all_members() if x.bot])))
 
         # Server
-        response += "\n\n[Servers]: {}".format(len(self.bot.servers))
-        response += "\n[Requires 2FA]: {}".format(
+        response += "\n\nServers: {}".format(len(self.bot.servers))
+        response += "\nRequires 2FA: {}".format(
             len([x for x in self.bot.servers if x.mfa_level == 1]))
-        response += "\n[Has Emojis]: {}".format(
+        response += "\nHas Emojis: {}".format(
             len([x for x in self.bot.servers if x.emojis]))
 
         # Other
-        response += "\n\n[PMs]: {}".format(len(self.bot.private_channels))
+        response += "\n\nPMs: {}".format(len(self.bot.private_channels))
         response += "\n```"
         return Response(response)
+
+    @creator_only
+    async def c_subprocess(self, args):
+        """
+        Uses subprocess to run a console command
+        This should not be used if you do not know what you're doing
+        This makes it easier to update the bot and perform actions
+        Without having to SSH into the bot itself
+
+        {prefix}subprocess
+        """
+        if not args:
+            raise InvalidUsage()
+        try:
+            output = subprocess.check_output(args, universal_newlines=True)
+        except Exception as e:
+            output = e
+        return Response("```xl\n--- Subprocess ---\n{}\n```".format(output))
 
     async def c_cat(self):
         """

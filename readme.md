@@ -40,24 +40,26 @@ Run `runbot-linux-mac.sh`.
 ## Commands
 The **command prefix** is set in the configuration file. By default, it is `~`.
 
-Command | Usage | SB<sup>1</sup> | DB<sup>2</sup>
---- | --- | --- | ---
-`ping` | Test the bot's connection to the Discord API ||
-`stats` | Get statistics about servers, users, and the bot ||
-`shutdown <normal/n/hard/h>` | Terminates the bot script ||
-`help [command]` | Lists all commands. If a command is given, gives usage info ||
-`eval <code>` | Allows you to execute Python code ||
-`snowflake [id/@user/#channel/emote/@role]` | Get the time created of a snowflake<sup>3</sup> ||
-`status [status]` | Changes the user/bot's status, or clears it ||
-`discrim [discrim]` | Return a list of visible users with matching discriminator ||
-`changediscrim` | Change the user's discriminator | Yes |
-`tags` | Lists all tags || Yes
-`createtag <"name"> <"content">` | Adds a new tag with a given name and content || Yes
-`deletetag <"name">` | Deletes a tag || Yes
-`cleartags` | Deletes all tags || Yes
-`tag <name>` | Triggers a tag || Yes
-`cat` | Sends a random cat image ||
+Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
+--- | --- | --- | --- | ---
+`ping` | Test the bot's connection to the Discord API |||
+`stats` | Get statistics about servers, users, and the bot |||
+`shutdown <normal/n/hard/h>` | Terminates the bot script |||
+`help [command]` | Lists all commands. If a command is given, gives usage info |||
+`eval <code>` | Allows you to execute Python code ||| Yes
+`subprocess <command>` | Launch a subprocess ||| Yes
+`snowflake [id/@user/#channel/emote/@role]` | Get the time created of a snowflake<sup>4</sup> |||
+`status [status]` | Changes the user/bot's status, or clears it |||
+`discrim [discrim]` | Return a list of visible users with matching discriminator |||
+`changediscrim` | Change the user's discriminator | Yes ||
+`tags` | Lists all tags || Yes |
+`addtag <"name"> <"content">` | Adds a new tag with a given name and content || Yes |
+`deletetag <"name">` | Deletes a tag || Yes |
+`cleartags` | Deletes all tags || Yes |
+`tag <name>` | Triggers a tag || Yes |
+`cat` | Sends a random cat image |||
 
 - *<sup>1</sup>SB = Selfbot ONLY. The selfbot option must be enabled in the configuration file*
 - *<sup>2</sup>DB = Database REQUIRED. A RethinkDB database connection must be available to use*
-- *<sup>3</sup>To learn more about snowflakes, read https://discordapp.com/developers/docs/reference#snowflake-id's*
+- *<sup>3</sup>C = Creator ONLY. Only the bot application creator can use this command (or the user if selfbot)*
+- *<sup>4</sup>To learn more about snowflakes, read https://discordapp.com/developers/docs/reference#snowflake-id's*
