@@ -475,9 +475,8 @@ class Commands:
             if amount <= 0:
                 break
 
-            if 'watch?' in l['href']:
-                prefix = ":clapper: "
-            if '/user/' in l['href']:
+            prefix = ":clapper: "
+            if '/user/' in l['href'] or '/channel/' in l['href']:
                 prefix = ":bust_in_silhouette: "
             if '&list=' in l['href']:
                 prefix = ':book: '
