@@ -2,12 +2,13 @@
 Turbo is a Discord bot that does some weird and wacky things. It can function as a normal bot or a selfbot. With fun commands and utility commands suitable for server administrators and general users alike, Turbo is a general purpose bot designed for just about any situation.
 
 ## Requirements
-This bot is coded in **Python**, so that is required to run it. As well as that, there are some additional Python dependencies that should be installed using `pip install -U -r requirements.txt`
+This bot is coded in **Python**, so that is required to run it. As well as that, there are some additional Python dependencies that will be installed when running your platform's specific scripts.
 
 - `discord.py`
 - `aiohttp`
 - `colorlog`
 - `rethinkdb`
+- `beautifulsoup4`
 
 ## Installing
 ### Windows
@@ -58,6 +59,7 @@ Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
 `cleartags` | Deletes all tags || Yes |
 `tag <name>` | Triggers a tag || Yes |
 `cat` | Sends a random cat image |||
+`yt <query>` | Searches YouTube and returns results |||
 
 - *<sup>1</sup>SB = Selfbot ONLY. The selfbot option must be enabled in the configuration file*
 - *<sup>2</sup>DB = Database REQUIRED. A RethinkDB database connection must be available to use*

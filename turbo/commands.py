@@ -6,7 +6,9 @@ import discord
 import random
 import re
 import subprocess
+import urllib.parse
 
+from bs4 import BeautifulSoup
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
 
@@ -452,3 +454,34 @@ class Commands:
         """
         cat = await self.req.get('http://random.cat/meow')
         return Response(cat['file'])
+
+    async def c_yt(self, args):
+        """
+        Searches YouTube from given query
+        Returns the first page of results
+
+        {prefix}yt <query>
+        """
+        if not args:
+            raise InvalidUsage()
+
+        args = ' '.join(args)
+        search = urllib.parse.quote(args)
+        html = await self.req.get('https://www.youtube.com/results?search_query=' + search, json=False)
+        soup = BeautifulSoup(html)
+        response = "YouTube results for **{}**".format(args)
+        amount = 5
+        for l in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
+            if amount <= 0:
+                break
+
+            if 'watch?' in l['href']:
+                prefix = ":clapper: "
+            if '/user/' in l['href']:
+                prefix = ":bust_in_silhouette: "
+            if '&list=' in l['href']:
+                prefix = ':book: '
+
+            response += "\n{0}`{1}` - <https://youtube.com{2}>".format(prefix, l['title'], l['href'])
+            amount -= 1
+        return Response(response)
