@@ -475,11 +475,11 @@ class Commands:
             if amount <= 0:
                 break
 
-            if 'watch?' in l['href']:
+            if 'watch?' in l['href']:  # If the link is a video
                 prefix = ":clapper: "
-            if '/user/' in l['href']:
+            if '/user/' in l['href']:  # If the link is a user page
                 prefix = ":bust_in_silhouette: "
-            if '&list=' in l['href']:
+            if '&list=' in l['href']:  # If the link is a playlist
                 prefix = ':book: '
 
             response += "\n{0}`{1}` - <https://youtube.com{2}>".format(prefix, l['title'], l['href'])

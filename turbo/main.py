@@ -177,7 +177,8 @@ class Turbo(discord.Client):
                 "[Command] {0} [{1.server} | #{1}] - {2}".format(message.author, message.channel, content))
         else:
             self.log.info(
-                "[Command] {0} [Private Message | {1}] - {2}".format(message.author, message.channel, content))
+                "[Command] {0} [PM | {1}] - {2}".format(message.author, message.channel.name.replace(
+                    'Direct Message with', ''), content))
 
         s = inspect.signature(h)
         p = s.parameters.copy()
