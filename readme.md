@@ -53,7 +53,7 @@ Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
 `discrim [discrim]` | Return a list of visible users with matching discriminator |||
 `changediscrim` | Change the user's discriminator | Yes ||
 `tags` | Lists all tags || Yes |
-`addtag <"name"> <"content">` | Adds a new tag with a given name and content || Yes |
+`createtag <"name"> <"content">` | Adds a new tag with a given name and content || Yes |
 `deletetag <"name">` | Deletes a tag || Yes |
 `cleartags` | Deletes all tags || Yes |
 `tag <name>` | Triggers a tag || Yes |
