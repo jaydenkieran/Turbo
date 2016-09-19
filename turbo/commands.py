@@ -278,11 +278,7 @@ class Commands:
                 discrim = self.bot.user.discriminator
             else:
                 discrim = author.discriminator
-        else:
-            try:
-                discrim = int(discrim)
-            except ValueError:
-                return Response(":warning: `{}` is not a valid discriminator".format(discrim), delete=10)
+
         has_discrim = set(
             [x.name for x in self.bot.get_all_members() if x.discriminator == discrim])
         if not has_discrim:
