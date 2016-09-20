@@ -189,13 +189,15 @@ class Turbo(discord.Client):
 
         if not h:
             # Check aliases
+            # This is a relatively expensive loop but should be okay
+            # as it is only called after a command prefix is found
             if self.aliases is not None:
                 for i in self.aliases:
                     for i2 in self.aliases[i]:
                         if cmd == i2:
                             cmd = i
                             h = getattr(self.commands, 'c_%s' % cmd, None)
-                            if not h:
+                            if not h:  # theoretically this should never be a true statement
                                 return
             else:
                 return
