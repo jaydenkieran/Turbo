@@ -3,6 +3,7 @@ import sys
 import os
 import colorlog
 import configparser
+import ruamel.yaml as yaml
 
 
 class Logging:
@@ -98,3 +99,30 @@ class Config:
             critical = True
         if critical:
             os._exit(1)
+
+
+class Yaml:
+
+    """
+    Class for handling YAML
+    """
+
+    def __init__(self):
+        self.log = logging.getLogger(__name__)
+
+    def parse(self, filename):
+        """
+        Parse a YAML file
+        """
+        try:
+            with open(filename) as f:
+                try:
+                    return yaml.load(f)
+                except yaml.YAMLError as e:
+                    self.log.critical("Problem parsing {} as YAML: {}".format(
+                        filename, e))
+                    return None
+        except FileNotFoundError:
+            self.log.critical("Problem opening {}: File was not found".format(
+              filename))
+            return None

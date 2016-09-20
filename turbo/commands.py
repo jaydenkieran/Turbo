@@ -39,6 +39,7 @@ class Commands:
         self.log = bot.log
         self.db = bot.db
         self.req = bot.req
+        self.yaml = bot.yaml
 
         self.can_change_name = True
 
@@ -457,12 +458,12 @@ class Commands:
         cat = await self.req.get('http://random.cat/meow')
         return Response(cat['file'])
 
-    async def c_yt(self, args):
+    async def c_youtube(self, args):
         """
         Searches YouTube from given query
-        Returns the first page of results
+        Returns the 5 results
 
-        {prefix}yt <query>
+        {prefix}youtube <query>
         """
         if not args:
             raise InvalidUsage()

@@ -2,13 +2,14 @@
 Turbo is a Discord bot that does some weird and wacky things. It can function as a normal bot or a selfbot. With fun commands and utility commands suitable for server administrators and general users alike, Turbo is a general purpose bot designed for just about any situation.
 
 ## Requirements
-This bot is coded in **Python**, so that is required to run it. As well as that, there are some additional Python dependencies that will be installed when running your platform's specific scripts.
+This bot is coded in **Python**, so that is required to run it. As well as that, there are some additional Python dependencies that will be installed **automatically** when running your platform's specific scripts.
 
-- `discord.py`
-- `aiohttp`
-- `colorlog`
-- `rethinkdb`
-- `beautifulsoup4`
+- `discord.py` (used for Discord integration)
+- `aiohttp` (used for asynchronous web requests)
+- `colorlog` (used for logging in console & file)
+- `rethinkdb` (used for database storage, e.g tags)
+- `beautifulsoup4` (used for parsing website HTML)
+- `ruamel.yaml` (used for parsing YAML files)
 
 ## Installing
 ### Windows
@@ -29,6 +30,18 @@ This bot is coded in **Python**, so that is required to run it. As well as that,
 
 ## Configuration
 Open `config/turbo.example.ini` and edit it. Save it in the `config` folder as `turbo.ini`.
+
+### Aliases
+You can setup **aliases** for commands. To do so, copy `aliases.example.yml` to `aliases.yml`. In there, you can set aliases for different commands. The format in which you should do this is inside the example file. If you still need help, here's another example on how to set three different aliases for the `ping` command:
+
+```yml
+ping:
+  - p
+  - hello
+  - test
+```
+
+If you enter an invalid command in the aliases file, the bot will inform you of this when you start it. It won't prevent the bot from starting if you have invalid commands in the file, those will just be ignored.
 
 ## Running
 In order to use various commands, including commands relating to tags, you require a [RethinkDB database](https://www.rethinkdb.com/). Learn how to [install RethinkDB here](https://www.rethinkdb.com/docs/install/). If a database is unavailable, these commands will be disabled.
@@ -59,7 +72,7 @@ Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
 `cleartags` | Deletes all tags || Yes |
 `tag <name>` | Triggers a tag || Yes |
 `cat` | Sends a random cat image |||
-`yt <query>` | Searches YouTube and returns results |||
+`youtube <query>` | Searches YouTube and returns results |||
 
 - *<sup>1</sup>SB = Selfbot ONLY. The selfbot option must be enabled in the configuration file*
 - *<sup>2</sup>DB = Database REQUIRED. A RethinkDB database connection must be available to use*

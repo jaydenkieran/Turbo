@@ -3,3 +3,4 @@ aiohttp
 colorlog
 rethinkdb
 beautifulsoup4
+ruamel.yaml

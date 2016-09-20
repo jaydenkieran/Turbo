@@ -4,7 +4,7 @@ import inspect
 import asyncio
 import time
 
-from .utils import Logging, Config
+from .utils import Logging, Config, Yaml
 from .commands import Commands, Response
 from .exceptions import InvalidUsage
 from .constants import VERSION
@@ -18,6 +18,7 @@ class Turbo(discord.Client):
         self.logger = Logging('turbo.log')
         self.log = self.logger.lg
         self.config = Config('config/turbo.ini')
+        self.yaml = Yaml()
 
         super().__init__()
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -147,12 +148,27 @@ class Turbo(discord.Client):
             # Create needed tables
             await self.db.create_table('tags', primary='name')
         else:
-            self.log.warning("A database connection could not be established.")
+            self.log.warning("A database connection could not be established")
             self.log.warning(
-                "Commands that require a database connection will be unavailable.")
+                "Commands that require a database connection will be unavailable")
         self.db.ready = True
         print(flush=True)
-        self.log.info('Bot is ready.')
+
+        # Yaml checks
+        self.log.info('Aliases:')
+        self.aliases = self.yaml.parse('config/aliases.yml')
+        if self.aliases is None:
+            self.log.warning("No command aliases will be available. See 'readme.md' for information")
+        else:
+            self.log.info("- Found aliases")
+            for c in self.aliases.copy():
+                h = getattr(self.commands, 'c_%s' % c, None)
+                if not h:
+                    self.log.warning("{} is not a command".format(c))
+                    del self.aliases[c]
+
+        print(flush=True)
+        self.log.info('Bot is ready!')
         print(flush=True)
 
     async def on_message(self, message):
@@ -168,6 +184,14 @@ class Turbo(discord.Client):
             return
         cmd, *args = content.split()
         cmd = cmd[len(self.config.prefix):].lower().strip()
+
+        # Check aliases
+        if self.aliases is not None:
+            for i in self.aliases:
+                for i2 in self.aliases[i]:
+                    if cmd == i2:
+                        cmd = i
+
         h = getattr(self.commands, 'c_%s' % cmd, None)
         if not h:
             return
