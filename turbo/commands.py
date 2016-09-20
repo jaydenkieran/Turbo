@@ -125,6 +125,7 @@ class Commands:
             await self.bot.send_message(channel, ":wave:")
             # Cleanup
             await self.bot.logout()
+            self.log.debug("Unauthenticated from Discord")
             pending = asyncio.Task.all_tasks()
             gathered = asyncio.gather(*pending)
             try:
@@ -133,8 +134,13 @@ class Commands:
                 gathered.exception()
             except:
                 pass
+            self.bot.session.close()
+            self.log.debug("Client session has been closed")
+            os._exit(1)
         elif any(s in option for s in ['hard', 'h']):
             await self.bot.send_message(channel, ":wave:")
+            self.bot.session.close()
+            self.log.debug("Client session has been closed")
             os._exit(1)
         else:
             raise InvalidUsage()
