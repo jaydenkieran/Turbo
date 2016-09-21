@@ -1,4 +1,44 @@
-import turbo
+from __future__ import print_function
 
-bot = turbo.Turbo()
-bot.run(bot.config.token)
+import sys
+import os
+
+
+def checks():
+    failed = False
+
+    # Check Python version
+    if sys.version_info < (3, 5):
+        print('ERROR: Turbo needs Python 3.5. Python version: {}'.format(sys.version.split()[0]))
+        failed = True
+
+    # Check we are not missing folders or files
+    dirs = ['config', 'turbo']
+    for d in dirs:
+        try:
+            assert os.path.isdir(d)
+        except AssertionError:
+            print('ERROR: {} directory not found'.format(d))
+            failed = True
+
+    # Termination of the script occurs after all of the checks
+    # so that users can see if there is more than one issue
+    # rather than run the script, see an issue, fix it, see another
+    if failed:
+        stop_script()
+
+
+def stop_script():
+    print('Exiting...')
+    sys.exit(1)
+
+
+def main():
+    checks()
+
+    import turbo
+    bot = turbo.Turbo()
+    bot.run(bot.config.token)
+
+if __name__ == '__main__':
+    main()
