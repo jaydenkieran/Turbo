@@ -24,10 +24,12 @@ class Turbo(discord.Client):
 
         if self.config.debug:
             self.logger.sh.setLevel(logging.DEBUG)
+            self.log.debug("Debug mode is enabled. Logging level set to DEBUG")
 
         self.yaml = Yaml()
 
         super().__init__()
+        self.log.debug("discord.Client initialised")
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.log.debug('Created aiohttp client session')
         self.db = Database(self)
@@ -140,6 +142,7 @@ class Turbo(discord.Client):
         Called when the bot is connected to Discord
         """
         self.started = time.time()
+        self.log.debug("Bot start time is {}".format(self.started))
         self.log.info('Logged in as {0} ({0.id})'.format(self.user))
         print(flush=True)
         self.log.info('Configuration:')
@@ -205,6 +208,7 @@ class Turbo(discord.Client):
                 for i in self.aliases:
                     for i2 in self.aliases[i]:
                         if cmd == i2:
+                            self.log.debug("Detected alias {} -> {}".format(cmd, i))
                             cmd = i
                             h = getattr(self.commands, 'c_%s' % cmd, None)
                             if not h:  # theoretically this should never be a true statement
@@ -260,6 +264,7 @@ class Turbo(discord.Client):
                 else:
                     return await self.send_message(message.channel, content, delete=r.delete)
         except InvalidUsage:
+            self.log.debug("Invalid usage for command {} used by {}".format(cmd, message.author))
             docs = getattr(h, '__doc__', None)
             docs = '\n'.join(l.strip() for l in docs.split('\n'))
             docs = ":warning: Incorrect usage.\n```\n{}\n```".format(
@@ -273,11 +278,14 @@ class Turbo(discord.Client):
     async def on_error(self, event, *args, **kwargs):
         et, e, es = sys.exc_info()
         if et == Shutdown:
-            self.log.warning("Shutdown signal received. Terminating...")
+            self.log.debug("Shutdown signal received. Terminating...")
             await self.logout()
         else:
             traceback.print_exc()
 
 if __name__ == "__main__":
+    # this code should never run anyway as exceptions will be raised
+    # on the relative imports in this file if it is ran directly
     bot = Turbo()
+    bot.log.warning("Running the bot directly may cause issues. Use run.py.")
     bot.run(bot.config.token)
