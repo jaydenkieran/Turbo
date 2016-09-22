@@ -111,7 +111,6 @@ class Commands:
 
         {prefix}ping
         """
-        self.kappa = self.kappaaaa
         return Response(":ping_pong:", delete=5)
 
     async def c_shutdown(self, channel):
