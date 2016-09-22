@@ -86,6 +86,9 @@ class Config:
         self.ruser = config.get('Database', 'User', fallback='admin')
         self.rpass = config.get('Database', 'Password', fallback='')
 
+        # [Advanced]
+        self.debug = config.getboolean('Advanced', 'Debug', fallback=False)
+
         self.log.debug("Loaded '{}'".format(filename))
         self.validate()
 

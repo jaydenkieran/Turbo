@@ -5,6 +5,7 @@ import asyncio
 import time
 import sys
 import traceback
+import logging
 
 from .utils import Logging, Config, Yaml
 from .commands import Commands, Response
@@ -20,6 +21,10 @@ class Turbo(discord.Client):
         self.logger = Logging('turbo.log')
         self.log = self.logger.lg
         self.config = Config('config/turbo.ini')
+
+        if self.config.debug:
+            self.logger.sh.setLevel(logging.DEBUG)
+
         self.yaml = Yaml()
 
         super().__init__()
@@ -142,8 +147,9 @@ class Turbo(discord.Client):
         self.log.info('- Selfbot: ' + self.format_bool(self.config.selfbot))
         self.log.info('- Private Messages: ' + self.format_bool(self.config.pm))
         self.log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
+        self.log.info('- Debug Mode: ' + self.format_bool(self.config.debug))
         print(flush=True)
-        self.log.info('RethinkDB:')
+        self.log.info('Database:')
         self.log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
