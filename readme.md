@@ -21,12 +21,12 @@ This bot is coded in **Python**, so that is required to run it. As well as that,
 ### Linux
 1. Install Git using `sudo apt-get install git` (`apt-get` may be substituted for a different package manager on your system)
 2. Run `git clone https://github.com/jaydenkieran/Turbo.git -b master`
-3. Run `updatedeps-linux-mac.sh` in the new folder
+3. Run `updatedeps-linux.sh` in the new folder
 
 ### Mac
 1. Install Git using Homebrew: `brew install git`
 2. Run `git clone https://github.com/jaydenkieran/Turbo.git -b master` in Terminal
-3. Run `updatedeps-linux-mac.sh` in the new folder
+3. Run `updatedeps-mac.command` in the new folder
 
 ## Configuration
 Open `config/turbo.example.ini` and edit it. Save it in the `config` folder as `turbo.ini`.
@@ -48,8 +48,10 @@ In order to use various commands, including commands relating to tags, you requi
 
 ### Windows
 Open `runbot-win.bat`. **If you are using Git Bash**, you should run the bot using the command `winpty runbot.bat` instead to avoid unicode issues.
-### Other platforms
-Run `runbot-linux-mac.sh`.
+### Linux
+Run `runbot-linux.sh`.
+### Mac
+Run `runbot-mac.command`.
 
 ## Commands
 The **command prefix** is set in the configuration file. By default, it is `~`.
