@@ -121,8 +121,6 @@ class Commands:
         {prefix}shutdown
         """
         await self.bot.send_message(channel, ":wave:")
-        await self.bot.logout()
-        self.log.debug("Unauthenticated from Discord")
         raise Shutdown()
 
     async def c_help(self, cmd=None):

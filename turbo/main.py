@@ -265,6 +265,7 @@ class Turbo(discord.Client):
     async def on_error(self, event, *args, **kwargs):
         et, e, es = sys.exc_info()
         if et == Shutdown:
+            self.log.warning("Shutdown signal received. Terminating...")
             await self.logout()
         else:
             traceback.print_exc()
