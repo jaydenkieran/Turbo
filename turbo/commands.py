@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
 
-from .exceptions import InvalidUsage
+from .exceptions import InvalidUsage, Shutdown
 
 
 class Response:
@@ -111,40 +111,19 @@ class Commands:
 
         {prefix}ping
         """
+        self.kappa = self.kappaaaa
         return Response(":ping_pong:", delete=5)
 
-    async def c_shutdown(self, channel, option):
+    async def c_shutdown(self, channel):
         """
-        Shuts down the bot with a specific option
+        Shuts down the bot
 
-        {prefix}shutdown <normal/n/hard/h>
-
-        'normal/n' will logout of Discord properly (safer)
-        'hard/h' will forcefully terminate the script (quicker)
+        {prefix}shutdown
         """
-        if any(s in option for s in ['normal', 'n']):
-            await self.bot.send_message(channel, ":wave:")
-            # Cleanup
-            await self.bot.logout()
-            self.log.debug("Unauthenticated from Discord")
-            pending = asyncio.Task.all_tasks()
-            gathered = asyncio.gather(*pending)
-            try:
-                gathered.cancel()
-                self.bot.loop.run_until_complete(gathered)
-                gathered.exception()
-            except:
-                pass
-            self.bot.session.close()
-            self.log.debug("Client session has been closed")
-            os._exit(1)
-        elif any(s in option for s in ['hard', 'h']):
-            await self.bot.send_message(channel, ":wave:")
-            self.bot.session.close()
-            self.log.debug("Client session has been closed")
-            os._exit(1)
-        else:
-            raise InvalidUsage()
+        await self.bot.send_message(channel, ":wave:")
+        await self.bot.logout()
+        self.log.debug("Unauthenticated from Discord")
+        raise Shutdown()
 
     async def c_help(self, cmd=None):
         """

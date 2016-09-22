@@ -3,10 +3,12 @@ import aiohttp
 import inspect
 import asyncio
 import time
+import sys
+import traceback
 
 from .utils import Logging, Config, Yaml
 from .commands import Commands, Response
-from .exceptions import InvalidUsage
+from .exceptions import InvalidUsage, Shutdown
 from .constants import VERSION
 from .database import Database
 from .req import HTTPClient
@@ -257,6 +259,15 @@ class Turbo(discord.Client):
             if self.config.selfbot:
                 return await self.edit_message(message, docs, delete=10)
             return await self.send_message(message.channel, docs, delete=10)
+        except Shutdown:
+            raise
+
+    async def on_error(self, event, *args, **kwargs):
+        et, e, es = sys.exc_info()
+        if et == Shutdown:
+            await self.logout()
+        else:
+            traceback.print_exc()
 
 if __name__ == "__main__":
     bot = Turbo()

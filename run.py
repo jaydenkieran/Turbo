@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import sys
 import os
+import gc
 
 
 def checks():
@@ -29,16 +30,29 @@ def checks():
 
 
 def stop_script():
-    print('Exiting...')
+    print('\nExiting...')
     sys.exit(1)
 
 
 def main():
     checks()
 
-    import turbo
-    bot = turbo.Turbo()
-    bot.run(bot.config.token)
+    try:
+        import turbo
+        bot = turbo.Turbo()
+        bot.run(bot.config.token)
+    except ImportError as e:
+        print("ERROR: {}".format(e))
+        print("Try running: 'python -m pip install -U -r requirements.txt'")
+    finally:
+        try:
+            bot.session.close()  # Close aiohttp session if it is running
+        except Exception:
+            pass
+
+    gc.collect()  # Garbage collect
+    stop_script()
+
 
 if __name__ == '__main__':
     main()
