@@ -43,22 +43,19 @@ class Database():
         """
         Establish a database connection
         """
-        self.log.info("- Connecting to database...")
+        self.log.info("Connecting to database...")
         try:
             self.db = await r.connect(db=self.db_name, host=host, port=port, user=user, password=password)
         except r.errors.ReqlDriverError as e:
-            self.log.critical("Failed to connect")
             self.log.error(e)
             return False
 
         info = await self.db.server()
-        self.log.info(
-            "- Established connection. Server: {}".format(info['name']))
 
         # Create the database if it does not exist
         try:
             await r.db_create(self.db_name).run(self.db)
-            self.log.info("- Created database: {}".format(self.db_name))
+            self.log.info("Created database: {}".format(self.db_name))
         except r.errors.ReqlOpFailedError:
             self.log.debug(
                 "Database {} already exists, skipping creation".format(self.db_name))
@@ -70,7 +67,7 @@ class Database():
         """
         try:
             await r.table_create(name, primary_key=primary).run(self.db)
-            self.log.info("- Created table: {}".format(name))
+            self.log.info("Created table: {}".format(name))
         except r.errors.ReqlOpFailedError:
             self.log.debug(
                 "Table {} already exists, skipping creation".format(name))

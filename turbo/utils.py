@@ -33,7 +33,7 @@ class Logging:
             },
             log_colors={
                 "DEBUG": "purple",
-                "INFO": "cyan",
+                "INFO": "white",
                 "WARNING": "yellow",
                 "ERROR": "red",
                 "CRITICAL": "bold_red"
