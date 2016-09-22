@@ -78,7 +78,7 @@ class Config:
         self.selfbot = config.getboolean('General', 'Selfbot', fallback=False)
         self.pm = config.getboolean('General', 'AllowPms', fallback=True)
         self.prefix = config.get('General', 'Prefix', fallback='!')
-        self.delete = config.get('General', 'Delete', fallback=True)
+        self.delete = config.getboolean('General', 'Delete', fallback=True)
 
         # [Database]
         self.rhost = config.get('Database', 'Host', fallback='localhost')

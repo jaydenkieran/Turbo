@@ -138,11 +138,13 @@ class Turbo(discord.Client):
         self.log.info('Logged in as {0} ({0.id})'.format(self.user))
         print(flush=True)
         self.log.info('Configuration:')
-        self.log.info('- Selfbot: ' + self.format_bool(self.config.selfbot))
-        self.log.info('- Allow PMs: ' + self.format_bool(self.config.pm))
         self.log.info('- Prefix: ' + self.config.prefix)
+        self.log.info('- Selfbot: ' + self.format_bool(self.config.selfbot))
+        self.log.info('- Private Messages: ' + self.format_bool(self.config.pm))
+        self.log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
         print(flush=True)
         self.log.info('RethinkDB:')
+        self.log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
         connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
