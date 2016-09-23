@@ -305,8 +305,4 @@ class Turbo(discord.Client):
             traceback.print_exc()
 
 if __name__ == "__main__":
-    # this code should never run anyway as exceptions will be raised
-    # on the relative imports in this file if it is ran directly
-    bot = Turbo()
-    bot.log.warning("Running the bot directly may cause issues. Use run.py.")
-    bot.run(bot.config.token)
+    raise Shutdown()
