@@ -59,7 +59,7 @@ class Config:
         self.filename = filename
         if not os.path.isfile(filename):
             self.log.critical("'{}'' does not exist".format(filename))
-            os._exit(1)
+            raise Shutdown()
 
         try:
             config = configparser.ConfigParser(interpolation=None)
