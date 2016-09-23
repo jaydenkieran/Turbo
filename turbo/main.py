@@ -187,12 +187,16 @@ class Turbo(discord.Client):
             if self.aliases is None:
                 self.log.warning("No command aliases will be available. See 'readme.md' for information")
             else:
-                self.log.info("- Found aliases")
                 for c in self.aliases.copy():
                     h = getattr(self.commands, 'c_%s' % c, None)
                     if not h:
                         self.log.warning("{} is not a command".format(c))
                         del self.aliases[c]
+                headings = [c for c in self.aliases]
+                aliases = []
+                for i in headings:
+                    aliases += [a for a in self.aliases[i]]
+                self.log.info("- Found {} aliases".format(len(aliases)))
         else:
             self.aliases = None
             self.log.warning("Skipped aliases checking per configuration file")
