@@ -88,6 +88,7 @@ class Config:
 
         # [Advanced]
         self.debug = config.getboolean('Advanced', 'Debug', fallback=False)
+        self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
 
         self.log.debug("Loaded '{}'".format(filename))
         self.validate()

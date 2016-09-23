@@ -275,12 +275,8 @@ class Commands:
 
         {prefix}changediscrim
 
+        It achieves this by changing your Discord username
         Discord name changes are limited to 2 per hour
-        This command changes your name twice to achieve a discrim change
-        As a result, do not try to use this command more than once per hour
-
-        The command should not run if it detects it hasn't been an hour yet
-        Do not rely on this functionality, though
         """
         if not self.config.password:
             return Response(":warning: This command only works when Password is set in the config", delete=10)
@@ -301,8 +297,9 @@ class Commands:
         await asyncio.sleep(3)  # Allow time for websocket event
         self.log.debug(
             "Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
-        await self.bot.edit_profile(password=self.config.password, username=author.name)
-        asyncio.ensure_future(self._discrim_timer())
+        if self.config.discrimrevert:
+            await self.bot.edit_profile(password=self.config.password, username=author.name)
+            asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
 
     @requires_db
