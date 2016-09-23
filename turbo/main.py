@@ -178,16 +178,20 @@ class Turbo(discord.Client):
 
         # Yaml checks
         self.log.info('Aliases:')
-        self.aliases = self.yaml.parse('config/aliases.yml')
-        if self.aliases is None:
-            self.log.warning("No command aliases will be available. See 'readme.md' for information")
+        if self.config.readaliases:
+            self.aliases = self.yaml.parse('config/aliases.yml')
+            if self.aliases is None:
+                self.log.warning("No command aliases will be available. See 'readme.md' for information")
+            else:
+                self.log.info("- Found aliases")
+                for c in self.aliases.copy():
+                    h = getattr(self.commands, 'c_%s' % c, None)
+                    if not h:
+                        self.log.warning("{} is not a command".format(c))
+                        del self.aliases[c]
         else:
-            self.log.info("- Found aliases")
-            for c in self.aliases.copy():
-                h = getattr(self.commands, 'c_%s' % c, None)
-                if not h:
-                    self.log.warning("{} is not a command".format(c))
-                    del self.aliases[c]
+            self.aliases = None
+            self.log.warning("Skipped aliases checking per configuration file")
 
         print(flush=True)
         self.log.info('Bot is ready!')
