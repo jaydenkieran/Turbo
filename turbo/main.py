@@ -167,7 +167,7 @@ class Turbo(discord.Client):
             connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
             if connect:
                 # Create needed tables
-                await self.db.create_table('tags', primary='name')
+                await self.db.create_table(self.config.dbtable_tags, primary='name')
             else:
                 self.log.warning("A database connection could not be established")
                 dbfailed = True

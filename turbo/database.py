@@ -42,7 +42,7 @@ class Database():
         """
         Establish a database connection
         """
-        self.log.info("Connecting to database...")
+        self.log.info("Connecting to database: {}".format(self.db_name))
         try:
             self.db = await r.connect(db=self.db_name, host=host, port=port, user=user, password=password)
         except r.errors.ReqlDriverError as e:

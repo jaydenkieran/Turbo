@@ -94,6 +94,9 @@ class Config:
         self.nodatabase = config.getboolean('Advanced', 'NoDatabase', fallback=False)
         self.readaliases = config.getboolean('Advanced', 'ReadAliases', fallback=True)
         self.selfbotmessageedit = config.getboolean('Advanced', 'SelfbotMessageEdit', fallback=True)
+
+        self.dbtable_tags = config.get('Advanced', 'DbTable_Tags', fallback='tags')
+
         self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
 
         self.log.debug("Loaded '{}'".format(filename))
