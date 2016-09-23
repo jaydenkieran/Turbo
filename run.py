@@ -44,6 +44,10 @@ def main():
     except ImportError as e:
         print("ERROR: {}".format(e))
         print("Try running: 'python -m pip install -U -r requirements.txt'")
+    except Exception as e:
+        if hasattr(e, '__module__') and e.__module__ == 'turbo.exceptions':
+            if e.__class__.__name__ == "Shutdown":
+                pass
     finally:
         try:
             bot.session.close()  # Close aiohttp session if it is running
