@@ -1,7 +1,3 @@
-import asyncio
-import aiohttp
-
-
 class HTTPClient:
 
     """

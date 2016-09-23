@@ -152,6 +152,8 @@ class Turbo(discord.Client):
         self.log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
         self.log.info('- Debug Mode: ' + self.format_bool(self.config.debug))
         self.log.info('- No Database: ' + self.format_bool(self.config.nodatabase))
+        self.log.info('- Read Aliases: ' + self.format_bool(self.config.readaliases))
+        self.log.info('- Selfbot Message Editing: ' + self.format_bool(self.config.selfbotmessageedit))
         self.log.info('- Discrim Name Revert: ' + self.format_bool(self.config.discrimrevert))
         print(flush=True)
         self.log.info('Database:')
@@ -272,7 +274,7 @@ class Turbo(discord.Client):
                 content = r.content
                 if r.reply and not self.config.selfbot:
                     content = "{}: {}".format(message.author.mention, content)
-                if self.config.selfbot:
+                if self.config.selfbot and self.config.selfbotmessageedit:
                     return await self.edit_message(message, content, delete=r.delete)
                 else:
                     return await self.send_message(message.channel, content, delete=r.delete)
@@ -282,7 +284,7 @@ class Turbo(discord.Client):
             docs = '\n'.join(l.strip() for l in docs.split('\n'))
             docs = ":warning: Incorrect usage.\n```\n{}\n```".format(
                 docs.format(prefix=self.config.prefix))
-            if self.config.selfbot:
+            if self.config.selfbot and self.config.selfbotmessageedit:
                 return await self.edit_message(message, docs, delete=10)
             return await self.send_message(message.channel, docs, delete=10)
         except Shutdown:

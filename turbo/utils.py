@@ -90,6 +90,7 @@ class Config:
         self.debug = config.getboolean('Advanced', 'Debug', fallback=False)
         self.nodatabase = config.getboolean('Advanced', 'NoDatabase', fallback=False)
         self.readaliases = config.getboolean('Advanced', 'ReadAliases', fallback=True)
+        self.selfbotmessageedit = config.getboolean('Advanced', 'SelfbotMessageEdit', fallback=True)
         self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
 
         self.log.debug("Loaded '{}'".format(filename))

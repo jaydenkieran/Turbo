@@ -1,4 +1,3 @@
-import os
 import asyncio
 import inspect
 import traceback
