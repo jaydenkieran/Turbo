@@ -151,17 +151,26 @@ class Turbo(discord.Client):
         self.log.info('- Private Messages: ' + self.format_bool(self.config.pm))
         self.log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
         self.log.info('- Debug Mode: ' + self.format_bool(self.config.debug))
+        self.log.info('- No Database: ' + self.format_bool(self.config.nodatabase))
+        self.log.info('- Discrim Name Revert: ' + self.format_bool(self.config.discrimrevert))
         print(flush=True)
         self.log.info('Database:')
         self.log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
-        connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
-        if connect:
-            # Create needed tables
-            await self.db.create_table('tags', primary='name')
+        dbfailed = False
+        if not self.config.nodatabase:
+            connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
+            if connect:
+                # Create needed tables
+                await self.db.create_table('tags', primary='name')
+            else:
+                self.log.warning("A database connection could not be established")
+                dbfailed = True
         else:
-            self.log.warning("A database connection could not be established")
+            self.log.warning("Skipped database connection per configuration file")
+            dbfailed = True
+        if dbfailed:
             self.log.warning(
                 "Commands that require a database connection will be unavailable")
         self.db.ready = True
