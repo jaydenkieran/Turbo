@@ -87,6 +87,7 @@ class Config:
         self.rport = config.getint('Database', 'Port', fallback=28015)
         self.ruser = config.get('Database', 'User', fallback='admin')
         self.rpass = config.get('Database', 'Password', fallback='')
+        self.rname = config.get('Database', 'Name', fallback='turbo')
 
         # [Advanced]
         self.debug = config.getboolean('Advanced', 'Debug', fallback=False)

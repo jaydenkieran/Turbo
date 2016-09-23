@@ -6,7 +6,7 @@ class Database():
     def __init__(self, bot):
         self.bot = bot
         self.log = bot.log
-        self.db_name = 'turbo'
+        self.db_name = self.bot.config.rname
         self.db = None
         r.set_loop_type("asyncio")
         self.ready = False
