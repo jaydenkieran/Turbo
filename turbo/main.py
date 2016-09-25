@@ -33,6 +33,7 @@ class Turbo(discord.Client):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.log.debug('Created aiohttp client session')
         self.db = Database(self)
+
         self.req = HTTPClient(self, self.session)
         self.commands = Commands(self)
 
