@@ -8,7 +8,7 @@ class HTTPClient:
         self.bot = bot
         self.session = session
 
-    async def get(self, url, json=True):
+    async def get(self, url, json=True, headers=None):
         """
         Make a GET request
 
@@ -18,8 +18,10 @@ class HTTPClient:
             The URL to make the request to
         json : bool
             Whether to return the result as JSON (default: True)
+        headers : dict
+            Additional headers to send with the request
         """
-        async with self.session.get(url) as r:
+        async with self.session.get(url, headers=headers) as r:
             self.bot.log.debug(
                 "Made GET request to '{}' with response code {}".format(url, r.status))
             if json:
