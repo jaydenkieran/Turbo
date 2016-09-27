@@ -1,5 +1,4 @@
 import discord
-import aiohttp
 import inspect
 import asyncio
 import time
@@ -30,11 +29,9 @@ class Turbo(discord.Client):
 
         super().__init__()
         self.log.debug("discord.Client initialised")
-        self.session = aiohttp.ClientSession(loop=self.loop)
-        self.log.debug('Created aiohttp client session')
         self.db = Database(self)
 
-        self.req = HTTPClient(self, self.session)
+        self.req = HTTPClient(loop=self.loop)
         self.commands = Commands(self)
 
         self.log.info("Turbo ({}). Connecting...".format(VERSION))
