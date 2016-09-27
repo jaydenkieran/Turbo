@@ -9,7 +9,7 @@ import logging
 from .utils import Config, Yaml
 from .commands import Commands, Response
 from .exceptions import InvalidUsage, Shutdown
-from .constants import VERSION
+from .constants import VERSION, USER_AGENT
 from .database import Database
 from .req import HTTPClient
 
@@ -22,7 +22,7 @@ class Turbo(discord.Client):
         self.config = Config('config/turbo.ini')
 
         super().__init__()
-        log.debug("discord.Client initialised")
+        self.http.user_agent = USER_AGENT
         self.db = Database(self)
 
         self.req = HTTPClient(loop=self.loop)
