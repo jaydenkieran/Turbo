@@ -1,7 +1,10 @@
 import aiohttp
 import asyncio
+import logging
 
 from .constants import USER_AGENT
+
+log = logging.getLogger(__name__)
 
 
 class HTTPClient:
@@ -24,7 +27,7 @@ class HTTPClient:
         DO NOT call this function yourself - use provided methods
         """
         async with self.session.request(method, url, **kwargs) as r:
-            self.bot.log.debug("{0.method} [{0.url}] {0.status}/{0.reason}".format(r))
+            log.debug("{0.method} [{0.url}] {0.status}/{0.reason}".format(r))
             if r.headers['Content-Type'] == 'application/json':
                 return await r.json()
             else:

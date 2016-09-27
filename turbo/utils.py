@@ -1,50 +1,11 @@
 import logging
-import sys
 import os
-import colorlog
 import configparser
 import ruamel.yaml as yaml
 
 from .exceptions import Shutdown
 
-
-class Logging:
-
-    """
-    Configures and sets up logging modules
-    """
-
-    def __init__(self, filename):
-        self.lg = logging.getLogger(__name__)
-        self.lg.setLevel(logging.DEBUG)
-        self.fh = logging.FileHandler(
-            filename=filename, encoding='utf-8', mode='w')
-        self.fh.setFormatter(logging.Formatter(
-            "[{asctime}] {levelname} ({filename} L{lineno}, {funcName}): {message}", style='{'
-        ))
-        self.lg.addHandler(self.fh)
-
-        self.sh = logging.StreamHandler(stream=sys.stdout)
-        self.sh.setFormatter(colorlog.LevelFormatter(
-            fmt={
-                "DEBUG": "{log_color}{levelname} ({module} L{lineno}, {funcName}): {message}",
-                "INFO": "{log_color}{message}",
-                "WARNING": "{log_color}{levelname}: {message}",
-                "ERROR": "{log_color}{levelname} ({module} L{lineno}, {funcName}): {message}",
-                "CRITICAL": "{log_color}{levelname} ({module} L{lineno}, {funcName}): {message}"
-            },
-            log_colors={
-                "DEBUG": "purple",
-                "INFO": "white",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "bold_red"
-            },
-            style='{'
-        ))
-        self.sh.setLevel(logging.INFO)
-        self.lg.addHandler(self.sh)
-        self.lg.debug('Logging has started')
+log = logging.getLogger(__name__)
 
 
 class Config:
@@ -54,18 +15,16 @@ class Config:
     """
 
     def __init__(self, filename):
-        self.log = logging.getLogger(__name__)
-
         self.filename = filename
         if not os.path.isfile(filename):
-            self.log.critical("'{}'' does not exist".format(filename))
+            log.critical("'{}'' does not exist".format(filename))
             raise Shutdown()
 
         try:
             config = configparser.ConfigParser(interpolation=None)
             config.read(filename, encoding='utf-8')
         except Exception as e:
-            self.log.critical(str(e))
+            log.critical(str(e))
             raise Shutdown()
 
         # ---------------------------------------------------- #
@@ -90,7 +49,6 @@ class Config:
         self.rname = config.get('Database', 'Name', fallback='turbo')
 
         # [Advanced]
-        self.debug = config.getboolean('Advanced', 'Debug', fallback=False)
         self.nodatabase = config.getboolean('Advanced', 'NoDatabase', fallback=False)
         self.readaliases = config.getboolean('Advanced', 'ReadAliases', fallback=True)
         self.selfbotmessageedit = config.getboolean('Advanced', 'SelfbotMessageEdit', fallback=True)
@@ -99,7 +57,7 @@ class Config:
 
         self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
 
-        self.log.debug("Loaded '{}'".format(filename))
+        log.debug("Loaded '{}'".format(filename))
         self.validate()
 
     def validate(self):
@@ -108,7 +66,7 @@ class Config:
         """
         critical = False
         if not self.token:
-            self.log.critical('You must provide a token in the config')
+            log.critical('You must provide a token in the config')
             critical = True
         if critical:
             raise Shutdown()
@@ -120,10 +78,7 @@ class Yaml:
     Class for handling YAML
     """
 
-    def __init__(self):
-        self.log = logging.getLogger(__name__)
-
-    def parse(self, filename):
+    def parse(filename):
         """
         Parse a YAML file
         """
@@ -132,10 +87,10 @@ class Yaml:
                 try:
                     return yaml.load(f)
                 except yaml.YAMLError as e:
-                    self.log.critical("Problem parsing {} as YAML: {}".format(
+                    log.critical("Problem parsing {} as YAML: {}".format(
                         filename, e))
                     return None
         except FileNotFoundError:
-            self.log.critical("Problem opening {}: File was not found".format(
+            log.critical("Problem opening {}: File was not found".format(
               filename))
             return None

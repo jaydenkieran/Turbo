@@ -5,6 +5,7 @@ import discord
 import random
 import re
 import subprocess
+import logging
 import urllib.parse
 
 from bs4 import BeautifulSoup
@@ -12,6 +13,8 @@ from functools import wraps
 from discord.ext.commands.bot import _get_variable
 
 from .exceptions import InvalidUsage, Shutdown
+
+log = logging.getLogger(__name__)
 
 
 class Response:
@@ -35,10 +38,8 @@ class Commands:
     def __init__(self, bot):
         self.bot = bot
         self.config = bot.config
-        self.log = bot.log
         self.db = bot.db
         self.req = bot.req
-        self.yaml = bot.yaml
 
         self.can_change_name = True
 
@@ -97,11 +98,11 @@ class Commands:
         Utility function working in conjunction with changediscrim command
         Do not use this with any other method
         """
-        self.log.debug("Discriminator timer started")
+        log.debug("Discriminator timer started")
         self.can_change_name = False
         await asyncio.sleep(60 * 61)  # 1 hour, 1 min (compensating)
         self.can_change_name = True
-        self.log.info(
+        log.info(
             "{}changediscrim can now be used again".format(self.config.prefix))
 
     async def c_ping(self):
@@ -163,7 +164,7 @@ class Commands:
         except Exception as e:
             exc = traceback.format_exc().splitlines()
             result = exc[-1]
-        self.log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
+        log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
         return Response("```xl\n--- In ---\n{}\n--- Out ---\n{}\n```".format(stmt, result))
 
     async def c_snowflake(self, author, id=None):
@@ -189,20 +190,20 @@ class Commands:
             if id.startswith('&'):
                 # Assume that a role was provided
                 id = id.replace('&', '')
-                self.log.debug('Assuming role provided: ' + id)
+                log.debug('Assuming role provided: ' + id)
                 for s in self.bot.servers:
                     role = discord.utils.get(s.roles, id=id)
                     if role:
                         preface = " Role: **{} | {}**\n".format(s, role.name)
             if ':' in id:
                 # Assume that an emoji was provided
-                self.log.debug('Assuming emoji provided: ' + id)
+                log.debug('Assuming emoji provided: ' + id)
                 if id.startswith(':'):
                     id = id[1:]
                 name = id.rsplit(':', 1)[0]
                 preface = " Emote: **{}**\n".format(name)
                 id = id.split(':', 1)[1]
-            self.log.debug("Resolved snowflake ID to " + id)
+            log.debug("Resolved snowflake ID to " + id)
         try:
             sfid = int(id)
         except ValueError:
@@ -286,15 +287,15 @@ class Commands:
         if not has_discrim:
             return Response(":warning: No names with the discriminator `{}`".format(author.discriminator), delete=10)
         name = random.choice(has_discrim)
-        self.log.debug(
+        log.debug(
             "Changing name from {} to {}".format(self.bot.user.name, name))
         try:
             await self.bot.edit_profile(password=self.config.password, username=name)
         except discord.HTTPException as e:
-            self.log.error(e)
+            log.error(e)
             return Response(":warning: There was a problem. The password in the config may be invalid.", delete=10)
         await asyncio.sleep(3)  # Allow time for websocket event
-        self.log.debug(
+        log.debug(
             "Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
         if self.config.discrimrevert:
             await self.bot.edit_profile(password=self.config.password, username=author.name)

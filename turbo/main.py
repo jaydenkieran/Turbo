@@ -6,35 +6,29 @@ import sys
 import traceback
 import logging
 
-from .utils import Logging, Config, Yaml
+from .utils import Config, Yaml
 from .commands import Commands, Response
 from .exceptions import InvalidUsage, Shutdown
 from .constants import VERSION
 from .database import Database
 from .req import HTTPClient
 
+log = logging.getLogger(__name__)
+
 
 class Turbo(discord.Client):
 
     def __init__(self):
-        self.logger = Logging('turbo.log')
-        self.log = self.logger.lg
         self.config = Config('config/turbo.ini')
 
-        if self.config.debug:
-            self.logger.sh.setLevel(logging.DEBUG)
-            self.log.debug("Debug mode is enabled. Logging level set to DEBUG")
-
-        self.yaml = Yaml()
-
         super().__init__()
-        self.log.debug("discord.Client initialised")
+        log.debug("discord.Client initialised")
         self.db = Database(self)
 
         self.req = HTTPClient(loop=self.loop)
         self.commands = Commands(self)
 
-        self.log.info("Turbo ({}). Connecting...".format(VERSION))
+        log.info("Turbo ({}). Connecting...".format(VERSION))
 
     def run(self, token):
         """
@@ -43,15 +37,15 @@ class Turbo(discord.Client):
         try:
             super().run(token, bot=(not self.config.selfbot))
         except discord.LoginFailure:
-            self.log.critical("Incorrect login token")
+            log.critical("Incorrect login token")
             if not self.config.selfbot:
-                self.log.critical(
+                log.critical(
                     "Using your own token? Change 'selfbot' to 'True' in the config")
             else:
-                self.log.critical(
+                log.critical(
                     "Using an OAuth account? Change 'selfbot' to 'False' in the config")
         except discord.HTTPException as e:
-            self.log.critical(e)
+            log.critical(e)
 
     def format_bool(self, boolean):
         """
@@ -72,19 +66,19 @@ class Turbo(discord.Client):
         msg = None
         try:
             msg = await super().send_message(dest, content, tts=tts)
-            self.log.debug(
+            log.debug(
                 'Sent message ID {} in #{}'.format(msg.id, dest.name))
 
             if msg and delete and self.config.delete:
                 asyncio.ensure_future(self._delete_after(msg, delete))
         except discord.Forbidden:
-            self.log.warning(
+            log.warning(
                 "No permission to send a message to #{}".format(dest.name))
         except discord.NotFound:
-            self.log.warning(
+            log.warning(
                 "Could not find channel #{} to send a message to".format(dest.name))
         except discord.HTTPException as e:
-            self.log.warning(
+            log.warning(
                 "Problem sending a message in #{}: {}".format(dest.name, e))
         return msg
 
@@ -95,19 +89,19 @@ class Turbo(discord.Client):
         msg = None
         try:
             msg = await super().edit_message(message, content)
-            self.log.debug(
+            log.debug(
                 'Edited message ID {} in #{}'.format(msg.id, msg.channel))
 
             if msg and delete and self.config.delete:
                 asyncio.ensure_future(self._delete_after(msg, delete))
         except discord.Forbidden:
-            self.log.warning(
+            log.warning(
                 "No permission to edit a message in #{}".format(message.channel))
         except discord.NotFound:
-            self.log.warning(
+            log.warning(
                 "Could not find message ID {} to edit".format(message.id))
         except discord.HTTPException as e:
-            self.log.warning(
+            log.warning(
                 "Problem editing a message in #{}: {}".format(message.channel, e))
         return msg
 
@@ -117,20 +111,20 @@ class Turbo(discord.Client):
         """
         try:
             await super().delete_message(msg)
-            self.log.debug(
+            log.debug(
                 'Deleted message ID {} in #{}'.format(msg.id, msg.channel.name))
         except discord.Forbidden:
-            self.log.warning(
+            log.warning(
                 "No permission to delete a message in #{}".format(msg.channel.name))
         except discord.HTTPException as e:
-            self.log.warning(
+            log.warning(
                 "Problem deleting a message in #{}: {}".format(msg.channel.name, e))
 
     async def _delete_after(self, msg, time):
         """
         Deletes a message after a given amount of time
         """
-        self.log.debug(
+        log.debug(
             "Scheduled message ID {} to delete ({}s)".format(msg.id, time))
         await asyncio.sleep(time)
         await self.delete_message(msg)
@@ -140,24 +134,23 @@ class Turbo(discord.Client):
         Called when the bot is connected to Discord
         """
         self.started = time.time()
-        self.log.debug("Bot start time is {}".format(self.started))
-        self.log.info('Logged in as {0} ({0.id})'.format(self.user))
+        log.debug("Bot start time is {}".format(self.started))
+        log.info('Logged in as {0} ({0.id})'.format(self.user))
         print(flush=True)
-        self.log.info('General:')
-        self.log.info('- Prefix: ' + self.config.prefix)
-        self.log.info('- Selfbot: ' + self.format_bool(self.config.selfbot))
-        self.log.info('- Private Messages: ' + self.format_bool(self.config.pm))
-        self.log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
+        log.info('General:')
+        log.info('- Prefix: ' + self.config.prefix)
+        log.info('- Selfbot: ' + self.format_bool(self.config.selfbot))
+        log.info('- Private Messages: ' + self.format_bool(self.config.pm))
+        log.info('- Delete Messages: ' + self.format_bool(self.config.delete))
         print(flush=True)
-        self.log.info('Advanced:')
-        self.log.info('- Debug Mode: ' + self.format_bool(self.config.debug))
-        self.log.info('- No Database: ' + self.format_bool(self.config.nodatabase))
-        self.log.info('- Read Aliases: ' + self.format_bool(self.config.readaliases))
-        self.log.info('- Selfbot Message Editing: ' + self.format_bool(self.config.selfbotmessageedit))
-        self.log.info('- Discrim Name Revert: ' + self.format_bool(self.config.discrimrevert))
+        log.info('Advanced:')
+        log.info('- No Database: ' + self.format_bool(self.config.nodatabase))
+        log.info('- Read Aliases: ' + self.format_bool(self.config.readaliases))
+        log.info('- Selfbot Message Editing: ' + self.format_bool(self.config.selfbotmessageedit))
+        log.info('- Discrim Name Revert: ' + self.format_bool(self.config.discrimrevert))
         print(flush=True)
-        self.log.info('Database:')
-        self.log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
+        log.info('Database:')
+        log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
         dbfailed = False
@@ -167,40 +160,40 @@ class Turbo(discord.Client):
                 # Create needed tables
                 await self.db.create_table(self.config.dbtable_tags, primary='name')
             else:
-                self.log.warning("A database connection could not be established")
+                log.warning("A database connection could not be established")
                 dbfailed = True
         else:
-            self.log.warning("Skipped database connection per configuration file")
+            log.warning("Skipped database connection per configuration file")
             dbfailed = True
         if dbfailed:
-            self.log.warning(
+            log.warning(
                 "Commands that require a database connection will be unavailable")
         self.db.ready = True
         print(flush=True)
 
         # Yaml checks
-        self.log.info('Aliases:')
+        log.info('Aliases:')
         if self.config.readaliases:
-            self.aliases = self.yaml.parse('config/aliases.yml')
+            self.aliases = Yaml.parse('config/aliases.yml')
             if self.aliases is None:
-                self.log.warning("No command aliases will be available. See 'readme.md' for information")
+                log.warning("No command aliases will be available. See 'readme.md' for information")
             else:
                 for c in self.aliases.copy():
                     h = getattr(self.commands, 'c_%s' % c, None)
                     if not h:
-                        self.log.warning("{} is not a command".format(c))
+                        log.warning("{} is not a command".format(c))
                         del self.aliases[c]
                 headings = [c for c in self.aliases]
                 aliases = []
                 for i in headings:
                     aliases += [a for a in self.aliases[i]]
-                self.log.info("- Found {} aliases".format(len(aliases)))
+                log.info("- Found {} aliases".format(len(aliases)))
         else:
             self.aliases = None
-            self.log.warning("Skipped aliases checking per configuration file")
+            log.warning("Skipped aliases checking per configuration file")
 
         print(flush=True)
-        self.log.info('Bot is ready!')
+        log.info('Bot is ready!')
         print(flush=True)
 
     async def on_message(self, message):
@@ -227,7 +220,7 @@ class Turbo(discord.Client):
                 for i in self.aliases:
                     for i2 in self.aliases[i]:
                         if cmd == i2:
-                            self.log.debug("Detected alias {} -> {}".format(cmd, i))
+                            log.debug("Detected alias {} -> {}".format(cmd, i))
                             cmd = i
                             h = getattr(self.commands, 'c_%s' % cmd, None)
                             if not h:  # theoretically this should never be a true statement
@@ -236,10 +229,10 @@ class Turbo(discord.Client):
                 return
 
         if not message.channel.is_private:
-            self.log.info(
+            log.info(
                 "[Command] {0} [{1.server} | #{1}] - {2}".format(message.author, message.channel, content))
         else:
-            self.log.info(
+            log.info(
                 "[Command] {0} [Private Message | {1}] - {2}".format(message.author, message.channel, content))
 
         s = inspect.signature(h)
@@ -283,7 +276,7 @@ class Turbo(discord.Client):
                 else:
                     return await self.send_message(message.channel, content, delete=r.delete)
         except InvalidUsage:
-            self.log.debug("Invalid usage for command {} used by {}".format(cmd, message.author))
+            log.debug("Invalid usage for command {} used by {}".format(cmd, message.author))
             docs = getattr(h, '__doc__', None)
             docs = '\n'.join(l.strip() for l in docs.split('\n'))
             docs = ":warning: Incorrect usage.\n```\n{}\n```".format(
@@ -297,7 +290,7 @@ class Turbo(discord.Client):
     async def on_error(self, event, *args, **kwargs):
         et, e, es = sys.exc_info()
         if et == Shutdown:
-            self.log.debug("Shutdown signal received. Terminating...")
+            log.debug("Shutdown signal received. Terminating...")
             await self.logout()
         else:
             traceback.print_exc()

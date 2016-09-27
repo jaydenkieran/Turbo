@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 import os
 import gc
+import traceback
 
 
 def checks():
@@ -48,6 +49,8 @@ def main():
         if hasattr(e, '__module__') and e.__module__ == 'turbo.exceptions':
             if e.__class__.__name__ == "Shutdown":
                 pass
+        else:
+            traceback.print_exc()
     finally:
         try:
             bot.session.close()  # Close aiohttp session if it is running
