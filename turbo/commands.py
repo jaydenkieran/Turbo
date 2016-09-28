@@ -417,9 +417,18 @@ class Commands:
         if not args:
             raise InvalidUsage()
         try:
-            output = subprocess.check_output(args, universal_newlines=True)
+            output = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except Exception as e:
             output = e
+        while output is not None:
+            retcode = output.poll()
+            if retcode is not None:
+                # done
+                output = output.communicate()[0].decode()
+                break
+            else:
+                # still running
+                await asyncio.sleep(1)
         return Response("```xl\n--- Subprocess ---\n{}\n```".format(output))
 
     async def c_cat(self):
