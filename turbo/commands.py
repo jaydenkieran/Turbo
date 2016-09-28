@@ -460,3 +460,27 @@ class Commands:
             response += "\n{0}`{1}` - <https://youtube.com{2}>".format(prefix, l['title'], l['href'])
             amount -= 1
         return Response(response)
+
+    async def c_presence(self, option=None):
+        """
+        Changes presence status on Discord
+
+        {prefix}presence <online/idle/dnd/invisible>
+
+        Invisible makes you appear offline.
+        Leave blank to reset presence to online.
+        """
+        afk = False
+
+        if option is None:
+            option = 'online'
+        else:
+            option = option.lower()
+
+        if any(s == option for s in [e.value for e in discord.Status]):
+            if option == 'idle':
+                afk = True
+            await self.bot.change_presence(status=option, afk=afk)
+            return Response(":white_check_mark: Set presence to {}!".format(option))
+        else:
+            raise InvalidUsage()

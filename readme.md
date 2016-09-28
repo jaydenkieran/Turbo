@@ -75,6 +75,7 @@ Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
 `tag <name>` | Triggers a tag || Yes |
 `cat` | Sends a random cat image |||
 `youtube <query>` | Searches YouTube and returns results |||
+`presence <online/idle/dnd/invisible>` | Changes presence status on Discord |||
 
 - *<sup>1</sup>SB = Selfbot ONLY. The selfbot option must be enabled in the configuration file*
 - *<sup>2</sup>DB = Database REQUIRED. A RethinkDB database connection must be available to use*
