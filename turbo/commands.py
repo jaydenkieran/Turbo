@@ -417,7 +417,7 @@ class Commands:
         if not args:
             raise InvalidUsage()
         try:
-            output = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            output = subprocess.Popen(' '.join(args), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except Exception as e:
             output = e
         while output is not None:
