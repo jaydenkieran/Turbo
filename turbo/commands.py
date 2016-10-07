@@ -470,7 +470,7 @@ class Commands:
             amount -= 1
         return Response(response)
 
-    async def c_presence(self, option=None):
+    async def c_presence(self, author, option=None):
         """
         Changes presence status on Discord
 
@@ -489,7 +489,7 @@ class Commands:
         if any(s == option for s in [e.value for e in discord.Status]):
             if option == 'idle':
                 afk = True
-            await self.bot.change_presence(status=option, afk=afk)
+            await self.bot.change_presence(game=author.game, status=option, afk=afk)
             return Response(":white_check_mark: Set presence to {}!".format(option))
         else:
             raise InvalidUsage()
