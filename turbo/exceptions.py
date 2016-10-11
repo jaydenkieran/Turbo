@@ -11,3 +11,7 @@ class InvalidUsage(TurboException):
     Raised when a command has been used incorrectly
     """
     pass
+
+
+class Shutdown(Exception):
+    pass

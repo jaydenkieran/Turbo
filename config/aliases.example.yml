@@ -1,0 +1,26 @@
+ping:
+  - p
+shutdown:
+  - s
+help:
+  - h
+eval:
+  - e
+subprocess:
+  - sp
+snowflake:
+  - sf
+discrim:
+  - d
+changediscrim:
+  - cd
+createtag:
+  - ct
+deletetag:
+  - dt
+cleartags:
+  - ct
+tag:
+  - t
+youtube:
+  - yt

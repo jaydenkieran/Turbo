@@ -1,17 +1,20 @@
-import os
 import asyncio
 import inspect
 import traceback
 import discord
-import datetime
 import random
 import re
-import rethinkdb as r
+import subprocess
+import logging
+import urllib.parse
 
+from bs4 import BeautifulSoup
 from functools import wraps
 from discord.ext.commands.bot import _get_variable
 
-from .exceptions import InvalidUsage
+from .exceptions import InvalidUsage, Shutdown
+
+log = logging.getLogger(__name__)
 
 
 class Response:
@@ -35,7 +38,6 @@ class Commands:
     def __init__(self, bot):
         self.bot = bot
         self.config = bot.config
-        self.log = bot.log
         self.db = bot.db
         self.req = bot.req
 
@@ -71,16 +73,36 @@ class Commands:
 
         return wrapper
 
+    def creator_only(func):
+        """
+        Requires the bot's application creator to be the one using the command
+        """
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            message = _get_variable('message')
+
+            if self.bot.user.bot:
+                owner = (await self.bot.application_info()).owner.id
+            else:
+                owner = self.bot.user.id
+
+            if not message or message.author.id == owner:
+                return await func(self, *args, **kwargs)
+            else:
+                return Response(":warning: This command cannot be used - only the bot application creator can use this command to prevent harm", delete=10)
+
+        return wrapper
+
     async def _discrim_timer(self):
         """
         Utility function working in conjunction with changediscrim command
         Do not use this with any other method
         """
-        self.log.debug("Discriminator timer started")
+        log.debug("Discriminator timer started")
         self.can_change_name = False
         await asyncio.sleep(60 * 61)  # 1 hour, 1 min (compensating)
         self.can_change_name = True
-        self.log.info(
+        log.info(
             "{}changediscrim can now be used again".format(self.config.prefix))
 
     async def c_ping(self):
@@ -91,32 +113,14 @@ class Commands:
         """
         return Response(":ping_pong:", delete=5)
 
-    async def c_shutdown(self, channel, option):
+    async def c_shutdown(self, channel):
         """
-        Shuts down the bot with a specific option
+        Shuts down the bot
 
-        {prefix}shutdown <normal/n/hard/h>
-
-        'normal/n' will logout of Discord properly (safer)
-        'hard/h' will forcefully terminate the script (quicker)
+        {prefix}shutdown
         """
-        if any(s in option for s in ['normal', 'n']):
-            await self.bot.send_message(channel, ":wave:")
-            # Cleanup
-            await self.bot.logout()
-            pending = asyncio.Task.all_tasks()
-            gathered = asyncio.gather(*pending)
-            try:
-                gathered.cancel()
-                self.bot.loop.run_until_complete(gathered)
-                gathered.exception()
-            except:
-                pass
-        elif any(s in option for s in ['hard', 'h']):
-            await self.bot.send_message(channel, ":wave:")
-            os._exit(1)
-        else:
-            raise InvalidUsage()
+        await self.bot.send_message(channel, ":wave:")
+        raise Shutdown()
 
     async def c_help(self, cmd=None):
         """
@@ -143,6 +147,7 @@ class Commands:
                     commands.append("{}{}".format(self.config.prefix, cname))
             return Response("Commands:\n`{}`".format("`, `".join(commands)), delete=60)
 
+    @creator_only
     async def c_eval(self, message, server, channel, author, stmt, args):
         """
         Evaluates Python code
@@ -159,8 +164,8 @@ class Commands:
         except Exception as e:
             exc = traceback.format_exc().splitlines()
             result = exc[-1]
-        self.log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
-        return Response("```py\n# Input\n{}\n# Output\n{}\n```".format(stmt, result))
+        log.debug("Evaluated: {} - Result was: {}".format(stmt, result))
+        return Response("```xl\n--- In ---\n{}\n--- Out ---\n{}\n```".format(stmt, result))
 
     async def c_snowflake(self, author, id=None):
         """
@@ -185,20 +190,20 @@ class Commands:
             if id.startswith('&'):
                 # Assume that a role was provided
                 id = id.replace('&', '')
-                self.log.debug('Assuming role provided: ' + id)
+                log.debug('Assuming role provided: ' + id)
                 for s in self.bot.servers:
                     role = discord.utils.get(s.roles, id=id)
                     if role:
                         preface = " Role: **{} | {}**\n".format(s, role.name)
             if ':' in id:
                 # Assume that an emoji was provided
-                self.log.debug('Assuming emoji provided: ' + id)
+                log.debug('Assuming emoji provided: ' + id)
                 if id.startswith(':'):
                     id = id[1:]
                 name = id.rsplit(':', 1)[0]
                 preface = " Emote: **{}**\n".format(name)
                 id = id.split(':', 1)[1]
-            self.log.debug("Resolved snowflake ID to " + id)
+            log.debug("Resolved snowflake ID to " + id)
         try:
             sfid = int(id)
         except ValueError:
@@ -235,11 +240,11 @@ class Commands:
         If no status is provided, it'll clear the status
         """
         if status is None:
-            await self.bot.change_status(game=None)
+            await self.bot.change_presence()
             return Response(":speech_left: Cleared status", delete=60)
         else:
             status = ' '.join([status, *args])
-            await self.bot.change_status(game=discord.Game(name=status))
+            await self.bot.change_presence(game=discord.Game(name=status))
             return Response(":speech_left: Changed status to **{}**".format(status), delete=60)
 
     async def c_discrim(self, author, discrim=None):
@@ -256,11 +261,7 @@ class Commands:
                 discrim = self.bot.user.discriminator
             else:
                 discrim = author.discriminator
-        else:
-            try:
-                discrim = int(discrim)
-            except ValueError:
-                return Response(":warning: `{}` is not a valid discriminator".format(discrim), delete=10)
+
         has_discrim = set(
             [x.name for x in self.bot.get_all_members() if x.discriminator == discrim])
         if not has_discrim:
@@ -274,12 +275,8 @@ class Commands:
 
         {prefix}changediscrim
 
+        It achieves this by changing your Discord username
         Discord name changes are limited to 2 per hour
-        This command changes your name twice to achieve a discrim change
-        As a result, do not try to use this command more than once per hour
-
-        The command should not run if it detects it hasn't been an hour yet
-        Do not rely on this functionality, though
         """
         if not self.config.password:
             return Response(":warning: This command only works when Password is set in the config", delete=10)
@@ -290,18 +287,19 @@ class Commands:
         if not has_discrim:
             return Response(":warning: No names with the discriminator `{}`".format(author.discriminator), delete=10)
         name = random.choice(has_discrim)
-        self.log.debug(
+        log.debug(
             "Changing name from {} to {}".format(self.bot.user.name, name))
         try:
             await self.bot.edit_profile(password=self.config.password, username=name)
         except discord.HTTPException as e:
-            self.log.error(e)
+            log.error(e)
             return Response(":warning: There was a problem. The password in the config may be invalid.", delete=10)
         await asyncio.sleep(3)  # Allow time for websocket event
-        self.log.debug(
+        log.debug(
             "Discriminator: {} -> {}".format(author.discriminator, self.bot.user.discriminator))
-        await self.bot.edit_profile(password=self.config.password, username=author.name)
-        asyncio.ensure_future(self._discrim_timer())
+        if self.config.discrimrevert:
+            await self.bot.edit_profile(password=self.config.password, username=author.name)
+            asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
 
     @requires_db
@@ -379,32 +377,59 @@ class Commands:
         """
         Prints statistics
         """
-        response = "```md"
+        response = "```xl"
 
         # Bot
         m, s = divmod(int(self.bot.get_uptime()), 60)
         h, m = divmod(m, 60)
-        response += "\n[Uptime]: %d:%02d:%02d" % (h, m, s)
+        response += "\nUptime: %d:%02d:%02d" % (h, m, s)
 
         # User
-        response += "\n\n[Users]: {} ({} unique)".format(
+        response += "\n\nUsers: {} ({} unique)".format(
             len(list(self.bot.get_all_members())), len(set(self.bot.get_all_members())))
-        response += "\n[Avatars]: {} ({} unique)".format(
+        response += "\nAvatars: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.avatar]), len(set([x for x in self.bot.get_all_members() if x.avatar])))
-        response += "\n[Bots]: {} ({} unique)".format(
+        response += "\nBots: {} ({} unique)".format(
             len([x for x in self.bot.get_all_members() if x.bot]), len(set([x for x in self.bot.get_all_members() if x.bot])))
 
         # Server
-        response += "\n\n[Servers]: {}".format(len(self.bot.servers))
-        response += "\n[Requires 2FA]: {}".format(
+        response += "\n\nServers: {}".format(len(self.bot.servers))
+        response += "\nRequires 2FA: {}".format(
             len([x for x in self.bot.servers if x.mfa_level == 1]))
-        response += "\n[Has Emojis]: {}".format(
+        response += "\nHas Emojis: {}".format(
             len([x for x in self.bot.servers if x.emojis]))
 
         # Other
-        response += "\n\n[PMs]: {}".format(len(self.bot.private_channels))
+        response += "\n\nPMs: {}".format(len(self.bot.private_channels))
         response += "\n```"
         return Response(response)
+
+    @creator_only
+    async def c_subprocess(self, args):
+        """
+        Uses subprocess to run a console command
+        This should not be used if you do not know what you're doing
+        This makes it easier to update the bot and perform actions
+        Without having to SSH into the bot itself
+
+        {prefix}subprocess
+        """
+        if not args:
+            raise InvalidUsage()
+        try:
+            output = subprocess.Popen(' '.join(args), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except Exception as e:
+            output = e
+        while output is not None:
+            retcode = output.poll()
+            if retcode is not None:
+                # done
+                output = output.communicate()[0].decode()
+                break
+            else:
+                # still running
+                await asyncio.sleep(1)
+        return Response("```xl\n--- Subprocess ---\n{}\n```".format(output))
 
     async def c_cat(self):
         """
@@ -414,3 +439,57 @@ class Commands:
         """
         cat = await self.req.get('http://random.cat/meow')
         return Response(cat['file'])
+
+    async def c_youtube(self, args):
+        """
+        Searches YouTube from given query
+        Returns the 5 results
+
+        {prefix}youtube <query>
+        """
+        if not args:
+            raise InvalidUsage()
+
+        args = ' '.join(args)
+        search = urllib.parse.quote(args)
+        html = await self.req.get('https://www.youtube.com/results?search_query=' + search, json=False)
+        soup = BeautifulSoup(html, "html.parser")
+        response = "YouTube results for **{}**".format(args)
+        amount = 5
+        for l in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
+            if amount <= 0:
+                break
+
+            prefix = ":clapper: "
+            if '/user/' in l['href'] or '/channel/' in l['href']:
+                prefix = ":bust_in_silhouette: "
+            if '&list=' in l['href']:
+                prefix = ':book: '
+
+            response += "\n{0}`{1}` - <https://youtube.com{2}>".format(prefix, l['title'], l['href'])
+            amount -= 1
+        return Response(response)
+
+    async def c_presence(self, author, option=None):
+        """
+        Changes presence status on Discord
+
+        {prefix}presence <online/idle/dnd/invisible>
+
+        Invisible makes you appear offline.
+        Leave blank to reset presence to online.
+        """
+        afk = False
+
+        if option is None:
+            option = 'online'
+        else:
+            option = option.lower()
+
+        if any(s == option for s in [e.value for e in discord.Status]):
+            if option == 'idle':
+                afk = True
+            await self.bot.change_presence(game=author.game, status=option, afk=afk)
+            return Response(":white_check_mark: Set presence to {}!".format(option))
+        else:
+            raise InvalidUsage()

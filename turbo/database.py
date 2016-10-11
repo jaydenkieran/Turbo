@@ -1,13 +1,14 @@
+import logging
 import rethinkdb as r
-import os
+
+log = logging.getLogger(__name__)
 
 
 class Database():
 
     def __init__(self, bot):
         self.bot = bot
-        self.log = bot.log
-        self.db_name = 'turbo'
+        self.db_name = self.bot.config.rname
         self.db = None
         r.set_loop_type("asyncio")
         self.ready = False
@@ -22,7 +23,7 @@ class Database():
         """
         Insert a document into a table
         """
-        self.log.debug(
+        log.debug(
             "Saving document to table {} with data: {}".format(table, data))
         return await r.table(table).insert(data, conflict="update").run(self.db)
 
@@ -30,7 +31,7 @@ class Database():
         """
         Deletes a document(s) from a table
         """
-        self.log.debug(
+        log.debug(
             "Deleting document from table {} with primary key {}".format(table, primary_key))
         if primary_key is not None:
             # Delete one document with the key name
@@ -43,24 +44,21 @@ class Database():
         """
         Establish a database connection
         """
-        self.log.info("- Connecting to database...")
+        log.info("Connecting to database: {}".format(self.db_name))
         try:
             self.db = await r.connect(db=self.db_name, host=host, port=port, user=user, password=password)
         except r.errors.ReqlDriverError as e:
-            self.log.critical("Failed to connect")
-            self.log.error(e)
+            log.error(e)
             return False
 
         info = await self.db.server()
-        self.log.info(
-            "- Established connection. Server: {}".format(info['name']))
 
         # Create the database if it does not exist
         try:
             await r.db_create(self.db_name).run(self.db)
-            self.log.info("- Created database: {}".format(self.db_name))
+            log.info("Created database: {}".format(self.db_name))
         except r.errors.ReqlOpFailedError:
-            self.log.debug(
+            log.debug(
                 "Database {} already exists, skipping creation".format(self.db_name))
         return True
 
@@ -70,7 +68,7 @@ class Database():
         """
         try:
             await r.table_create(name, primary_key=primary).run(self.db)
-            self.log.info("- Created table: {}".format(name))
+            log.info("Created table: {}".format(name))
         except r.errors.ReqlOpFailedError:
-            self.log.debug(
+            log.debug(
                 "Table {} already exists, skipping creation".format(name))
