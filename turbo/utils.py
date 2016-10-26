@@ -2,10 +2,23 @@ import logging
 import os
 import configparser
 import ruamel.yaml as yaml
+import json
 
 from .exceptions import Shutdown
 
 log = logging.getLogger(__name__)
+
+
+def load_json(file):
+    """Loads a JSON file and returns it as a dict"""
+    with open(file) as f:
+        return json.load(f)
+
+
+def dump_json(file, array):
+    """Dumps a dict to a JSON file"""
+    with open(file, 'w') as f:
+        return json.dump(array, f)
 
 
 class Config:
@@ -56,6 +69,7 @@ class Config:
         self.dbtable_tags = config.get('Advanced', 'DbTable_Tags', fallback='tags')
 
         self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
+        self.backuptags = config.getboolean('Advanced', 'BackupTags', fallback=True)
 
         log.debug("Loaded '{}'".format(filename))
         self.validate()
@@ -91,6 +105,5 @@ class Yaml:
                         filename, e))
                     return None
         except FileNotFoundError:
-            log.critical("Problem opening {}: File was not found".format(
-              filename))
+            log.critical("Problem opening {}: File was not found".format(filename))
             return None

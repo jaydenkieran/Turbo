@@ -6,10 +6,10 @@ import sys
 import traceback
 import logging
 
-from .utils import Config, Yaml
+from .utils import Config, Yaml, load_json, dump_json
 from .commands import Commands, Response
 from .exceptions import InvalidUsage, Shutdown
-from .constants import VERSION, USER_AGENT
+from .constants import VERSION, USER_AGENT, BACKUP_TAGS
 from .database import Database
 from .req import HTTPClient
 
@@ -153,21 +153,31 @@ class Turbo(discord.Client):
         log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
-        dbfailed = False
+        self.dbfailed = False
         if not self.config.nodatabase:
             connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
             if connect:
                 # Create needed tables
                 await self.db.create_table(self.config.dbtable_tags, primary='name')
+                if self.config.backuptags:
+                    # Dump any existing tags to backup file
+                    log.info("Backing up existing tags to JSON file...")
+                    cursor = await self.db.get_db().table(self.config.dbtable_tags).run(self.db.db)
+                    current_backup = load_json(BACKUP_TAGS)
+                    for i in cursor.items:
+                        name = i['name']
+                        current_backup[name] = i['content']
+                    dump_json(BACKUP_TAGS, current_backup)
+                    log.info("Tags have been backed up to {} in case of a database outage".format(BACKUP_TAGS))
             else:
                 log.warning("A database connection could not be established")
-                dbfailed = True
+                self.dbfailed = True
         else:
             log.warning("Skipped database connection per configuration file")
-            dbfailed = True
-        if dbfailed:
+            self.dbfailed = True
+        if self.dbfailed:
             log.warning(
-                "Commands that require a database connection will be unavailable")
+                "As the database is unavailable, tags cannot be created or deleted, but tags that exist in the backup JSON file can be triggered.")
         self.db.ready = True
         print(flush=True)
 
