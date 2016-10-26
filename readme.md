@@ -54,7 +54,7 @@ Run `runbot-linux.sh`.
 Run `runbot-mac.command`.
 
 ## Commands
-The **command prefix** is set in the configuration file. By default, it is `~`.
+The **command prefix** is set in the configuration file. By default, it is `~`. This prefix is needed before all commands.
 
 Command | Usage | SB<sup>1</sup> | DB<sup>2</sup> | C<sup>3</sup>
 --- | --- | --- | --- | ---
