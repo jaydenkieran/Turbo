@@ -9,5 +9,8 @@ class Updater:
         print("==============================")
         log.info("Keeping the bot up to date...")
         cmd = "git pull"
+        print()
         subprocess.check_call(cmd.split())
+        print()
+        log.info("Any changes will be applied on the next bot restart")
         print("==============================")
