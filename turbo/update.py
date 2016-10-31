@@ -17,7 +17,7 @@ class Updater:
                 raise AssertionError("Not a valid git repository")
 
             assert not self.repo.bare, "Current git repository is bare"
-            assert not self.repo.is_dirty(), "The repository is dirty"
+            #assert not self.repo.is_dirty(), "The repository is dirty"
 
             try:
                 self.remote = self.repo.remotes['origin']
@@ -33,10 +33,5 @@ class Updater:
         flags = pull.flags
         log.debug("Pull result was: {} ({})".format(flags, pull.note))
 
-        if flags == 4:
-            log.info("The bot is up-to-date with the latest GitHub version.")
-        elif flags == 64:
-            log.info("The bot was updated to the latest version on GitHub. Please run the bot again.")
-            os._exit(1)
-        else:
-            return
+        print(pull.commit)
+        print(pull.old_commit)
