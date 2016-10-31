@@ -10,6 +10,7 @@ This bot is coded in **Python**, so that is required to run it. As well as that,
 - `rethinkdb` (used for database storage, e.g tags)
 - `beautifulsoup4` (used for parsing website HTML)
 - `ruamel.yaml` (used for parsing YAML files)
+- `gitpython` (used for keeping the bot up to date)
 
 ## Installing
 ### Windows

@@ -21,7 +21,8 @@ class Turbo(discord.Client):
 
     def __init__(self):
         self.config = Config('config/turbo.ini')
-        self.updater = Updater()
+        if self.config.update:
+            self.updater = Updater()
 
         super().__init__()
         self.http.user_agent = USER_AGENT
