@@ -1,6 +1,7 @@
 import os
 import logging
 import git
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -25,8 +26,17 @@ class Updater:
 
             assert self.remote.exists(), "The remote is not valid"
         except AssertionError as e:
-            log.debug("Pre-update checks failed: {}".format(e))
+            log.info("Skipping update script: {}".format(e))
             return
 
-        pull = self.remote.pull()  # Pull from remote repository
-        print(pull.flags)
+        pull = self.remote.pull()[0]  # Pull from remote repository
+        flags = pull.flags
+        log.debug("Pull result was: {} ({})".format(flags, pull.note))
+
+        if flags == 4:
+            log.info("The bot is up-to-date with the latest GitHub version.")
+        elif flags == 64:
+            log.info("The bot was updated to the latest version on GitHub. Please run the bot again.")
+            os._exit(1)
+        else:
+            return
