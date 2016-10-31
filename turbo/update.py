@@ -35,3 +35,7 @@ class Updater:
 
         print(pull.commit)
         print(pull.old_commit)
+
+        if pull.old_commit is not None:
+            log.info("The repository was updated. Restart this script.")
+            os._exit(1)
