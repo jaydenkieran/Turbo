@@ -524,7 +524,7 @@ class Commands:
             return Response(":warning: The repository name should be formatted like: `hammerandchisel/discord-api-docs`", delete=10)
 
         url = "https://api.github.com/repos/{0}/issues".format(repo)
-        req = await self.req.get(url)
+        req = await self.req.get(url, json=True)
 
         matching = []
         for i in req:
