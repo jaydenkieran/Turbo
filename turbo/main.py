@@ -300,6 +300,7 @@ class Turbo(discord.Client):
         except Shutdown:
             raise
         except Exception as e:
+            e = ":warning: An exception occurred: `{}`. For more information, see the console.".format(e)
             if self.config.selfbot and self.config.selfbotmessageedit:
                 return await self.edit_message(message, e, delete=10)
             return await self.send_message(message.channel, e, delete=10)
