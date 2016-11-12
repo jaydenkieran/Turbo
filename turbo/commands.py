@@ -509,3 +509,35 @@ class Commands:
             return Response(":white_check_mark: Set presence to {}!".format(option))
         else:
             raise InvalidUsage()
+
+    async def c_ghissue(self, repo, args):
+        """
+        Returns the top GitHub issue results in a repo for a query
+
+        {prefix}ghissue <repo> <query>
+        """
+        if not args:
+            raise InvalidUsage()
+        args = ' '.join(args)
+
+        if '/' not in repo:
+            return Response(":warning: The repository name should be formatted like: `hammerandchisel/discord-api-docs`", delete=10)
+
+        url = "https://api.github.com/repos/{0}/issues".format(repo)
+        req = await self.req.get(url)
+
+        matching = []
+        for i in req:
+            if args.lower() in i['title'].lower():
+                matching.append(i)
+            elif args.lower() in i['body'].lower():
+                matching.append(i)
+            # TODO: Fuzzy searching
+
+        if not matching:
+            return Response(":no_entry_sign: No results found in `{}` for `{}`".format(repo, args), delete=10)
+
+        result = ":mag: Found these results in `{}` for `{}`\n".format(repo, args)
+        for i in matching:
+            result += "\n#{} ({}) `{}`: <{}>".format(i['number'], i['state'], i['title'], i['html_url'])
+        return Response(result)
