@@ -299,6 +299,11 @@ class Turbo(discord.Client):
             return await self.send_message(message.channel, docs, delete=10)
         except Shutdown:
             raise
+        except Exception as e:
+            if self.config.selfbot and self.config.selfbotmessageedit:
+                return await self.edit_message(message, e, delete=10)
+            return await self.send_message(message.channel, e, delete=10)
+            raise
 
     async def on_error(self, event, *args, **kwargs):
         et, e, es = sys.exc_info()
