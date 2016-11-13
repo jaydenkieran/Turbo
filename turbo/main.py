@@ -201,6 +201,11 @@ class Turbo(discord.Client):
                 for i in headings:
                     aliases += [a for a in self.aliases[i]]
                 log.info("- Found {} aliases".format(len(aliases)))
+                dupes = set([x for x in aliases if aliases.count(x) > 1])
+                if dupes:
+                    # there are duplicate aliases
+                    for i in dupes:
+                        log.warning("{} is an alias used by multiple commands. Check the aliases file".format(i))
         else:
             self.aliases = None
             log.warning("Skipped aliases checking per configuration file")
