@@ -242,11 +242,11 @@ class Commands:
         If no status is provided, it'll clear the status
         """
         if status is None:
-            await self.bot.change_presence(game=None, status=author.status, afk=author.afk)
+            await self.bot.change_presence(game=None, status=author.status)
             return Response(":speech_left: Cleared status", delete=60)
         else:
             status = ' '.join([status, *args])
-            await self.bot.change_presence(game=discord.Game(name=status), status=author.status, afk=author.afk)
+            await self.bot.change_presence(game=discord.Game(name=status), status=author.status)
             return Response(":speech_left: Changed status to **{}**".format(status), delete=60)
 
     async def c_discrim(self, author, discrim=None):
