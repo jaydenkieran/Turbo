@@ -62,10 +62,17 @@ class Turbo(discord.Client):
         """
         return time.time() - self.started
 
-    async def send_message(self, dest, content, *, tts=False, delete=0):
+    async def send_message(self, dest, content=None, *, tts=False, delete=0, embed=None):
         """
         Overrides discord.py's function for sending a message
         """
+        if content is None and embed is None:
+            log.warning('send_message was called but no content was given')
+            return
+        if isinstance(content, discord.Embed):
+            embed = content
+            content = None
+
         msg = None
         try:
             msg = await super().send_message(dest, content, tts=tts)
