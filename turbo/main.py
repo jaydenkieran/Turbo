@@ -6,10 +6,10 @@ import sys
 import traceback
 import logging
 
-from .utils import Config, Yaml
+from .utils import Config, Yaml, load_json, dump_json
 from .commands import Commands, Response
 from .exceptions import InvalidUsage, Shutdown
-from .constants import VERSION, USER_AGENT
+from .constants import VERSION, USER_AGENT, BACKUP_TAGS
 from .database import Database
 from .req import HTTPClient
 
@@ -59,13 +59,23 @@ class Turbo(discord.Client):
         """
         return time.time() - self.started
 
-    async def send_message(self, dest, content, *, tts=False, delete=0):
+    async def send_message(self, dest, content=None, embed=None, *, tts=False, delete=0):
         """
         Overrides discord.py's function for sending a message
         """
+        if content is None and embed is None:
+            log.warning('send_message was called but no content was given')
+            return
+        if isinstance(content, discord.Embed):
+            embed = content
+            content = None
+
         msg = None
         try:
-            msg = await super().send_message(dest, content, tts=tts)
+            if embed:
+                msg = await super().send_message(dest, embed=embed)
+            else:
+                msg = await super().send_message(dest, content, tts=tts)
             log.debug(
                 'Sent message ID {} in #{}'.format(msg.id, dest.name))
 
@@ -153,21 +163,31 @@ class Turbo(discord.Client):
         log.info('- Server: {0.rhost}:{0.rport} ({0.ruser})'.format(self.config))
 
         # Connect to database
-        dbfailed = False
+        self.dbfailed = False
         if not self.config.nodatabase:
             connect = await self.db.connect(self.config.rhost, self.config.rport, self.config.ruser, self.config.rpass)
             if connect:
                 # Create needed tables
                 await self.db.create_table(self.config.dbtable_tags, primary='name')
+                if self.config.backuptags:
+                    # Dump any existing tags to backup file
+                    log.info("Backing up existing tags to JSON file...")
+                    cursor = await self.db.get_db().table(self.config.dbtable_tags).run(self.db.db)
+                    current_backup = load_json(BACKUP_TAGS)
+                    for i in cursor.items:
+                        name = i['name']
+                        current_backup[name] = i['content']
+                    dump_json(BACKUP_TAGS, current_backup)
+                    log.info("Tags have been backed up to {} in case of a database outage".format(BACKUP_TAGS))
             else:
                 log.warning("A database connection could not be established")
-                dbfailed = True
+                self.dbfailed = True
         else:
             log.warning("Skipped database connection per configuration file")
-            dbfailed = True
-        if dbfailed:
+            self.dbfailed = True
+        if self.dbfailed:
             log.warning(
-                "Commands that require a database connection will be unavailable")
+                "As the database is unavailable, tags cannot be created or deleted, but tags that exist in the backup JSON file can be triggered.")
         self.db.ready = True
         print(flush=True)
 
@@ -188,6 +208,11 @@ class Turbo(discord.Client):
                 for i in headings:
                     aliases += [a for a in self.aliases[i]]
                 log.info("- Found {} aliases".format(len(aliases)))
+                dupes = set([x for x in aliases if aliases.count(x) > 1])
+                if dupes:
+                    # there are duplicate aliases
+                    for i in dupes:
+                        log.warning("{} is an alias used by multiple commands. Check the aliases file".format(i))
         else:
             self.aliases = None
             log.warning("Skipped aliases checking per configuration file")
@@ -285,6 +310,12 @@ class Turbo(discord.Client):
                 return await self.edit_message(message, docs, delete=10)
             return await self.send_message(message.channel, docs, delete=10)
         except Shutdown:
+            raise
+        except Exception as e:
+            e = ":warning: An exception occurred: `{}`. For more information, see the console.".format(e)
+            if self.config.selfbot and self.config.selfbotmessageedit:
+                return await self.edit_message(message, e, delete=10)
+            return await self.send_message(message.channel, e, delete=10)
             raise
 
     async def on_error(self, event, *args, **kwargs):

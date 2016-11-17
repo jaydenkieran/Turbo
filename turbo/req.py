@@ -21,19 +21,19 @@ class HTTPClient:
 
         self.headers = {'User-Agent': USER_AGENT}
 
-    async def request(self, method, url, **kwargs):
+    async def request(self, method, url, json=False, **kwargs):
         """
         Makes a HTTP request
         DO NOT call this function yourself - use provided methods
         """
         async with self.session.request(method, url, **kwargs) as r:
             log.debug("{0.method} [{0.url}] {0.status}/{0.reason}".format(r))
-            if r.headers['Content-Type'] == 'application/json':
+            if r.headers['Content-Type'] == 'application/json' or json is True:
                 return await r.json()
             else:
                 return await r.text()
 
-    async def get(self, url, *, headers={}, **kwargs):
+    async def get(self, url, *, headers={}, json=False, **kwargs):
         """
         Make a GET request
 
@@ -43,6 +43,8 @@ class HTTPClient:
             The URL to make the request to
         headers : dict
             Additional headers to send with the request
+        json : bool
+            Force returning as JSON
 
         Returns
         -------

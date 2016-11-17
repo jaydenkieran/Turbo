@@ -13,6 +13,8 @@ from functools import wraps
 from discord.ext.commands.bot import _get_variable
 
 from .exceptions import InvalidUsage, Shutdown
+from .utils import load_json
+from .constants import BACKUP_TAGS
 
 log = logging.getLogger(__name__)
 
@@ -69,7 +71,7 @@ class Commands:
             if not message or self.db.db is not None:
                 return await func(self, *args, **kwargs)
             else:
-                return Response(":warning: This command cannot be used - the database is unavailable", delete=10)
+                return Response(":warning: This command cannot be used. Only read-only commands can be used while the database is unavailable", delete=10)
 
         return wrapper
 
@@ -240,11 +242,11 @@ class Commands:
         If no status is provided, it'll clear the status
         """
         if status is None:
-            await self.bot.change_presence(game=None, status=author.status, afk=author.afk)
+            await self.bot.change_presence(game=None, status=author.status)
             return Response(":speech_left: Cleared status", delete=60)
         else:
             status = ' '.join([status, *args])
-            await self.bot.change_presence(game=discord.Game(name=status), status=author.status, afk=author.afk)
+            await self.bot.change_presence(game=discord.Game(name=status), status=author.status)
             return Response(":speech_left: Changed status to **{}**".format(status), delete=60)
 
     async def c_discrim(self, author, discrim=None):
@@ -302,17 +304,21 @@ class Commands:
             asyncio.ensure_future(self._discrim_timer())
         return Response(":thumbsup: Changed from `{}` -> `{}`".format(author.discriminator, self.bot.user.discriminator), delete=60)
 
-    @requires_db
     async def c_tags(self):
         """
         Get a list of all tags
 
         {prefix}tags
         """
-        cursor = await self.db.get_db().table('tags').run(self.db.db)
-        if not cursor.items:
-            return Response(":warning: No tags exist (yet)", delete=10)
-        tags = [x['name'] for x in cursor.items]
+        if not self.bot.dbfailed:
+            cursor = await self.db.get_db().table(self.bot.config.dbtable_tags).run(self.db.db)
+            if not cursor.items:
+                return Response(":warning: No tags exist (yet)", delete=10)
+            tags = [x['name'] for x in cursor.items]
+        else:
+            tags = load_json(BACKUP_TAGS)
+            if not tags:
+                return Response(":warning: No tags found in the backup tags file", delete=10)
         return Response(":pen_ballpoint: **Tags**\n`{}`".format('`, `'.join(tags)), delete=60)
 
     @requires_db
@@ -326,7 +332,7 @@ class Commands:
         if len(content) == 2:
             name, content = content
             data = {"name": name, "content": content}
-            await self.db.insert('tags', data)
+            await self.db.insert(self.bot.config.dbtable_tags, data)
             return Response(":thumbsup:", delete=10)
         else:
             raise InvalidUsage()
@@ -341,14 +347,13 @@ class Commands:
         content = re.findall('"([^"]*)"', message.content)
         if len(content) == 1:
             name = content[0]
-            delete = await self.db.delete('tags', name)
+            delete = await self.db.delete(self.bot.config.dbtable_tags, name)
             if int(delete['skipped']) != 0:
                 return Response(":warning: Could not delete `{}`, does not exist".format(name), delete=10)
             return Response(":thumbsup:", delete=10)
         else:
             raise InvalidUsage()
 
-    @requires_db
     async def c_tag(self, message, tag):
         """
         Returns a tag
@@ -357,11 +362,22 @@ class Commands:
         """
         content = message.content.replace(
             '{}tag '.format(self.config.prefix), '')
-        get = await self.db.get_db().table('tags').get(content).run(self.db.db)
-        if get is None:
-            return Response(":warning: No tag named `{}`".format(content), delete=10)
+        if not self.bot.dbfailed:
+            get = await self.db.get_db().table(self.bot.config.dbtable_tags).get(content).run(self.db.db)
+            if get is None:
+                return Response(":warning: No tag named `{}`".format(content), delete=10)
+            else:
+                return Response(get['content'])
         else:
-            return Response(get['content'])
+            get = load_json(BACKUP_TAGS)
+            if not get:
+                return Response(":warning: No tags found in the backup tags file", delete=10)
+            else:
+                get = get.get(content, default=None)
+                if get is None:
+                    return Response(":warning: No tag with that name in the backup tags file", delete=10)
+                else:
+                    return Response(get)
 
     @requires_db
     async def c_cleartags(self):
@@ -370,7 +386,7 @@ class Commands:
 
         {prefix}cleartags
         """
-        await self.db.delete('tags')
+        await self.db.delete(self.bot.config.dbtable_tags)
         return Response(":thumbsup:", delete=10)
 
     async def c_stats(self):
@@ -493,3 +509,35 @@ class Commands:
             return Response(":white_check_mark: Set presence to {}!".format(option))
         else:
             raise InvalidUsage()
+
+    async def c_ghissue(self, repo, args):
+        """
+        Returns the top GitHub issue results in a repo for a query
+
+        {prefix}ghissue <repo> <query>
+        """
+        if not args:
+            raise InvalidUsage()
+        args = ' '.join(args)
+
+        if '/' not in repo:
+            return Response(":warning: The repository name should be formatted like: `hammerandchisel/discord-api-docs`", delete=10)
+
+        url = "https://api.github.com/repos/{0}/issues".format(repo)
+        req = await self.req.get(url, json=True)
+
+        matching = []
+        for i in req:
+            if args.lower() in i['title'].lower():
+                matching.append(i)
+            elif args.lower() in i['body'].lower():
+                matching.append(i)
+            # TODO: Fuzzy searching
+
+        if not matching:
+            return Response(":no_entry_sign: No results found in `{}` for `{}`".format(repo, args), delete=10)
+
+        result = ":mag: Found these results in `{}` for `{}`\n".format(repo, args)
+        for i in matching:
+            result += "\n#{} ({}) `{}`: <{}>".format(i['number'], i['state'], i['title'], i['html_url'])
+        return Response(result)

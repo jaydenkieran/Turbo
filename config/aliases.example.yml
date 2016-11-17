@@ -15,11 +15,11 @@ discrim:
 changediscrim:
   - cd
 createtag:
-  - ct
+  - crt
 deletetag:
   - dt
 cleartags:
-  - ct
+  - clt
 tag:
   - t
 youtube:
