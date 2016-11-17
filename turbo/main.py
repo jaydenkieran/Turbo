@@ -12,7 +12,6 @@ from .exceptions import InvalidUsage, Shutdown
 from .constants import VERSION, USER_AGENT, BACKUP_TAGS
 from .database import Database
 from .req import HTTPClient
-from .update import Updater
 
 log = logging.getLogger(__name__)
 
@@ -21,8 +20,6 @@ class Turbo(discord.Client):
 
     def __init__(self):
         self.config = Config('config/turbo.ini')
-        if self.config.update:
-            self.updater = Updater()
 
         super().__init__()
         self.http.user_agent = USER_AGENT

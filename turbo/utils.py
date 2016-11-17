@@ -70,7 +70,6 @@ class Config:
 
         self.discrimrevert = config.getboolean('Advanced', 'DiscrimRevert', fallback=True)
         self.backuptags = config.getboolean('Advanced', 'BackupTags', fallback=True)
-        self.update = config.getboolean('Advanced', 'Update', fallback=True)
 
         log.debug("Loaded '{}'".format(filename))
         self.validate()
