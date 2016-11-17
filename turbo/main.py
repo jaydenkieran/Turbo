@@ -62,7 +62,7 @@ class Turbo(discord.Client):
         """
         return time.time() - self.started
 
-    async def send_message(self, dest, content=None, *, tts=False, delete=0, embed=None):
+    async def send_message(self, dest, content=None, embed=None, *, tts=False, delete=0):
         """
         Overrides discord.py's function for sending a message
         """
@@ -75,7 +75,10 @@ class Turbo(discord.Client):
 
         msg = None
         try:
-            msg = await super().send_message(dest, content, tts=tts)
+            if embed:
+                msg = await super().send_message(dest, embed=embed)
+            else:
+                msg = await super().send_message(dest, content, tts=tts)
             log.debug(
                 'Sent message ID {} in #{}'.format(msg.id, dest.name))
 
