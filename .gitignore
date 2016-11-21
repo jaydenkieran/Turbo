@@ -56,7 +56,7 @@ docs/_build/
 
 # PyBuilder
 target/
-config/turbo.ini
+config/config.ini
 config/aliases.yml
 turbo.log
 __pycache__/
