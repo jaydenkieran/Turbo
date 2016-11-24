@@ -1,17 +1,17 @@
-"""
-Repl command taken from R. Danny for the purposes of debugging
-Full credit to Danny: https://github.com/Rapptz/RoboDanny
-"""
-
 from discord.ext import commands
 import traceback
 import discord
 import inspect
 from contextlib import redirect_stdout
 import io
+import asyncio
 
 
 class REPL:
+    """
+    REPL script taken from R. Danny modified to better suit Turbo.
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.sessions = set()
@@ -28,7 +28,7 @@ class REPL:
     def get_syntax_error(self, e):
         return '```py\n{0.text}{1:>{0.offset}}\n{2}: {0}```'.format(e, '^', type(e).__name__)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True)
     async def repl(self, ctx):
         msg = ctx.message
 
@@ -43,11 +43,11 @@ class REPL:
         }
 
         if msg.channel.id in self.sessions:
-            await self.bot.say('Already running a REPL session in this channel. Exit it with `quit`.')
+            await self.bot.edit(msg, 'Already evaluating.')
             return
 
         self.sessions.add(msg.channel.id)
-        await self.bot.say('Enter code to execute or evaluate. `exit()` or `quit` to exit.')
+        await self.bot.edit(msg, 'Evaluating.')
         while True:
             response = await self.bot.wait_for_message(author=msg.author, channel=msg.channel,
                                                        check=lambda m: m.content.startswith('`'))
@@ -55,7 +55,7 @@ class REPL:
             cleaned = self.cleanup_code(response.content)
 
             if cleaned in ('quit', 'exit', 'exit()'):
-                await self.bot.say('Exiting.')
+                await self.bot.edit(response, 'Exiting.')
                 self.sessions.remove(msg.channel.id)
                 return
 
@@ -73,7 +73,7 @@ class REPL:
                 try:
                     code = compile(cleaned, '<repl session>', 'exec')
                 except SyntaxError as e:
-                    await self.bot.say(self.get_syntax_error(e))
+                    await self.bot.edit(response, self.get_syntax_error(e))
                     continue
 
             variables['message'] = response
@@ -100,14 +100,41 @@ class REPL:
             try:
                 if fmt is not None:
                     if len(fmt) > 2000:
-                        await self.bot.send_message(msg.channel, 'Content too big to be printed.')
+                        await self.bot.edit(response, 'Content too big to be printed.')
                     else:
-                        await self.bot.send_message(msg.channel, fmt)
+                        await self.bot.edit(response, fmt)
             except discord.Forbidden:
                 pass
             except discord.HTTPException as e:
-                await self.bot.send_message(msg.channel, 'Unexpected error: `{}`'.format(e))
+                await self.bot.edit(response, 'Unexpected error: `{}`'.format(e))
+
+################################################################################
+
+
+class Admin:
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(pass_context=True)
+    async def shutdown(self, ctx):
+        await self.bot.edit(ctx.message, "Terminating")
+        await asyncio.sleep(1)
+        await self.bot.logout()
+
+    @commands.command(pass_context=True, name='reload')
+    async def reload_(self, ctx, *, module: str):
+        try:
+            self.bot.unload_extension(module)
+            self.bot.load_extension(module)
+        except Exception as e:
+            await self.bot.edit(ctx.message, 'There was a problem: `{}`'.format(e))
+        else:
+            await self.bot.edit(ctx.message, 'Reloaded module: `{}`'.format(module))
+
+
+################################################################################
 
 
 def setup(bot):
     bot.add_cog(REPL(bot))
+    bot.add_cog(Admin(bot))

@@ -30,8 +30,10 @@ class Config:
 
         # [General]
         self.prefix = config.get('General', 'Prefix', fallback='!')
-        self.description = config.get('General', 'Description', fallback='Turbo (https://github.com/jaydenkieran/Turbo) is a selfbot developed using discord.py by Jayden.')
-        self.not_found = config.get('General', 'NotFound', fallback='Invalid command: {}')
+
+        # if someone actually wants to change the description they can do it manually
+        # by editing this file, it is basically useless anyway though
+        self.description = 'Turbo (https://github.com/jaydenkieran/Turbo) is a selfbot developed using discord.py by Jayden.'
 
         log.debug("Loaded '{}'".format(filename))
         self.validate()
