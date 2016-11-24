@@ -8,7 +8,7 @@ class Core:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(pass_context=True, name='help')
+    @commands.command(pass_context=True, name='help', aliases=['stats', 'about'])
     async def help_(self, ctx):
         msg = ctx.message
         embed = discord.Embed(title='Turbo ({})'.format(self.bot._version), color=0x00FF12)
