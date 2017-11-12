@@ -1,3 +1,5 @@
+**Turbo is no longer under development. It should still work, mostly, so feel free to fork. For now, this repository will become read-only. I would not advise using selfbots altogether, as they're pretty annoying on Discord.**
+
 # :rocket: Turbo
 Turbo is a Discord bot that does some weird and wacky things. It can function as a normal bot or a selfbot. With fun commands and utility commands suitable for server administrators and general users alike, Turbo is a general purpose bot designed for just about any situation.
 
